@@ -965,8 +965,17 @@ def PseudoCALL : Pseudo<(outs), (ins call_symbol:$func), []> {
   let AsmString = "call\t$func";
 }
 
-def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALL tglobaladdr:$func)>;
+//def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALL tglobaladdr:$func)>;
 def : Pat<(riscv_call texternalsym:$func), (PseudoCALL texternalsym:$func)>;
+
+// Example of a direct call {FIXME: properties}
+let isCall = 1, Defs = [X1], isCodeGenOnly = 0, mayStore = 0, mayLoad = 0,
+    hasSideEffects = 0 in
+def PseudoCALLDirect : Pseudo<(outs), (ins call_symbol:$func), []> {
+  let AsmString = "directcall\t$func";
+}
+
+def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALLDirect tglobaladdr:$func)>;
 
 def : Pat<(riscv_uret_flag), (URET X0, X0)>;
 def : Pat<(riscv_sret_flag), (SRET X0, X0)>;

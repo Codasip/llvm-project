@@ -57,6 +57,10 @@ public:
                           SmallVectorImpl<MCFixup> &Fixups,
                           const MCSubtargetInfo &STI) const;
 
+  void expandCustomFunctionCall(const MCInst &MI, raw_ostream &OS,
+                                SmallVectorImpl<MCFixup> &Fixups,
+                                const MCSubtargetInfo &STI) const;
+
   void expandAddTPRel(const MCInst &MI, raw_ostream &OS,
                       SmallVectorImpl<MCFixup> &Fixups,
                       const MCSubtargetInfo &STI) const;
@@ -140,6 +144,56 @@ void RISCVMCCodeEmitter::expandFunctionCall(const MCInst &MI, raw_ostream &OS,
   support::endian::write(OS, Binary, support::little);
 }
 
+void RISCVMCCodeEmitter::expandCustomFunctionCall(const MCInst &MI, raw_ostream &OS,
+                                                  SmallVectorImpl<MCFixup> &Fixups,
+                                                  const MCSubtargetInfo &STI) const {
+  MCInst TmpInst;
+  uint32_t Binary;
+  bool Relax = STI.getFeatureBits()[RISCV::FeatureRelax];
+
+  assert(MI.getOpcode() == RISCV::PseudoCALLDirect && "unexpected opcode");
+
+  if (MI.getOpcode() == RISCV::PseudoCALLDirect) {
+    // CALLDIRECT -> LUI ; ADDI ; JALR
+    // Note: Fixups are added manually since they are needed at non-zero offsets
+    Register Ra = RISCV::X1;
+
+    // Extract the call symbol that should be targetted by this call.
+    assert(MI.getOperand(0).isExpr() && "Something has gone wrong?");
+    const RISCVMCExpr *RCallExpr = cast<RISCVMCExpr>(MI.getOperand(0).getExpr());
+    assert(RCallExpr->getSubExpr()->getKind() == MCExpr::SymbolRef);
+    const MCSymbolRefExpr *Sym = cast<MCSymbolRefExpr>(RCallExpr->getSubExpr());
+
+    // LUI
+    TmpInst = MCInstBuilder(RISCV::LUI).addReg(Ra).addImm(0);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
+    Fixups.push_back(MCFixup::create(0, Sym,
+                                     MCFixupKind(RISCV::fixup_riscv_hi20),
+                                     MI.getLoc()));
+    if (Relax)
+      Fixups.push_back(MCFixup::create(0, MCConstantExpr::create(0, Ctx),
+                                       MCFixupKind(RISCV::fixup_riscv_relax),
+                                       MI.getLoc()));
+    // ADDI
+    TmpInst = MCInstBuilder(RISCV::ADDI).addReg(Ra).addReg(Ra).addImm(0);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
+    Fixups.push_back(MCFixup::create(4, Sym,
+                                     MCFixupKind(RISCV::fixup_riscv_lo12_i),
+                                     MI.getLoc()));
+    if (Relax)
+      Fixups.push_back(MCFixup::create(4, MCConstantExpr::create(0, Ctx),
+                                       MCFixupKind(RISCV::fixup_riscv_relax),
+                                       MI.getLoc()));
+    // JALR
+    TmpInst = MCInstBuilder(RISCV::JALR).addReg(Ra).addReg(Ra).addImm(0);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
+  }
+
+}
+
 // Expand PseudoAddTPRel to a simple ADD with the correct relocation.
 void RISCVMCCodeEmitter::expandAddTPRel(const MCInst &MI, raw_ostream &OS,
                                         SmallVectorImpl<MCFixup> &Fixups,
@@ -191,6 +245,12 @@ void RISCVMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
       MI.getOpcode() == RISCV::PseudoJump) {
     expandFunctionCall(MI, OS, Fixups, STI);
     MCNumEmitted += 2;
+    return;
+  }
+
+  if (MI.getOpcode() == RISCV::PseudoCALLDirect) {
+    expandCustomFunctionCall(MI, OS, Fixups, STI);
+    MCNumEmitted += 3;
     return;
   }
 

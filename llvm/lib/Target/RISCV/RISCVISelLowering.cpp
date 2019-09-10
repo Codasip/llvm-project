@@ -1884,6 +1884,7 @@ SDValue RISCVTargetLowering::LowerFormalArguments(
     report_fatal_error("Unsupported calling convention");
   case CallingConv::C:
   case CallingConv::Fast:
+  case CallingConv::RISCV_OverlayCall:
     break;
   }
 
@@ -2036,6 +2037,10 @@ bool RISCVTargetLowering::isEligibleForTailCallOptimization(
   // TODO: The "interrupt" attribute isn't currently defined by RISC-V. This
   // should be expanded as new function attributes are introduced.
   if (Caller.hasFnAttribute("interrupt"))
+    return false;
+
+  // Overlay function can never tailcall
+  if (Caller.getFunction().getCallingConv() == CallingConv::RISCV_OverlayCall)
     return false;
 
   // Do not tail call opt if the stack is used to pass parameters.
@@ -2276,10 +2281,20 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
   // If the callee is a GlobalAddress/ExternalSymbol node, turn it into a
   // TargetGlobalAddress/TargetExternalSymbol node so that legalize won't
   // split it and then direct call can be matched by PseudoCALL.
+  bool isOVLCC = false;
   if (GlobalAddressSDNode *S = dyn_cast<GlobalAddressSDNode>(Callee)) {
     const GlobalValue *GV = S->getGlobal();
 
     unsigned OpFlags = RISCVII::MO_CALL;
+    if (cast<Function>(GV)->getCallingConv() == CallingConv::RISCV_OverlayCall ||
+        MF.getFunction().getCallingConv() == CallingConv::RISCV_OverlayCall) {
+      isOVLCC = true;
+      if (cast<Function>(GV)->getCallingConv() == CallingConv::RISCV_OverlayCall)
+        OpFlags = RISCVII::MO_OVLCALL; /*OVERLAY*/
+      else
+        OpFlags = RISCVII::MO_OVL2RESCALL; /*OVLCALL2*/
+    }
+
     if (!getTargetMachine().shouldAssumeDSOLocal(*GV->getParent(), GV))
       OpFlags = RISCVII::MO_PLT;
 
@@ -2324,7 +2339,10 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     return DAG.getNode(RISCVISD::TAIL, DL, NodeTys, Ops);
   }
 
-  Chain = DAG.getNode(RISCVISD::CALL, DL, NodeTys, Ops);
+  if (isOVLCC)
+    Chain = DAG.getNode(RISCVISD::OVLCALL, DL, NodeTys, Ops);
+  else
+    Chain = DAG.getNode(RISCVISD::CALL, DL, NodeTys, Ops);
   Glue = Chain.getValue(1);
 
   // Mark the end of the call, which is glued to the call itself.
@@ -2534,6 +2552,8 @@ const char *RISCVTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "RISCVISD::FMV_X_ANYEXTW_RV64";
   case RISCVISD::READ_CYCLE_WIDE:
     return "RISCVISD::READ_CYCLE_WIDE";
+  case RISCVISD::OVLCALL:
+    return "RISCVISD::OVLCALL";
   }
   return nullptr;
 }

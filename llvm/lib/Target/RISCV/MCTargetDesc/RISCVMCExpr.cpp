@@ -36,13 +36,18 @@ const RISCVMCExpr *RISCVMCExpr::create(const MCExpr *Expr, VariantKind Kind,
 void RISCVMCExpr::printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const {
   VariantKind Kind = getKind();
   bool HasVariant = ((Kind != VK_RISCV_None) && (Kind != VK_RISCV_CALL) &&
-                     (Kind != VK_RISCV_CALL_PLT));
+                     (Kind != VK_RISCV_CALL_PLT) && (Kind != VK_RISCV_OVLCALL) &&
+                     (Kind != VK_RISCV_OVL2RESCALL));
 
   if (HasVariant)
     OS << '%' << getVariantKindName(getKind()) << '(';
   Expr->print(OS, MAI);
   if (Kind == VK_RISCV_CALL_PLT)
     OS << "@plt";
+  if (Kind == VK_RISCV_OVLCALL)
+    OS << "@overlay";
+  if (Kind == VK_RISCV_OVL2RESCALL)
+    OS << "@resident";
   if (HasVariant)
     OS << ')';
 }

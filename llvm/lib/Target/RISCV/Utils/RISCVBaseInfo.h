@@ -63,6 +63,8 @@ enum {
   MO_TPREL_ADD = 10,
   MO_TLS_GOT_HI = 11,
   MO_TLS_GD_HI = 12,
+  MO_OVLCALL = 13,
+  MO_OVL2RESCALL = 14,
 
   // Used to differentiate between target-specific "direct" flags and "bitmask"
   // flags. A machine operand can only have one "direct" flag, but can have

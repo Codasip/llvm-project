@@ -53,6 +53,11 @@ def riscv_sllw      : SDNode<"RISCVISD::SLLW", SDTIntShiftOp>;
 def riscv_sraw      : SDNode<"RISCVISD::SRAW", SDTIntShiftOp>;
 def riscv_srlw      : SDNode<"RISCVISD::SRLW", SDTIntShiftOp>;
 
+// Nodes for other Calling Conventions
+def riscv_ovlcall   : SDNode<"RISCVISD::OVLCALL", SDT_RISCVCall,
+                             [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
+                              SDNPVariadic]>;
+
 //===----------------------------------------------------------------------===//
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
@@ -976,6 +981,13 @@ def PseudoCALLDirect : Pseudo<(outs), (ins call_symbol:$func), []> {
 }
 
 def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALLDirect tglobaladdr:$func)>;
+
+let isCall = 1, Defs = [X1], isCodeGenOnly = 0 in
+def PseudoOVLCALL : Pseudo<(outs), (ins call_symbol:$func), []> {
+  let AsmString = "ovlcall\t$func";
+}
+def : Pat<(riscv_ovlcall tglobaladdr:$func), (PseudoOVLCALL tglobaladdr:$func)>;
+def : Pat<(riscv_ovlcall texternalsym:$func), (PseudoOVLCALL texternalsym:$func)>;
 
 def : Pat<(riscv_uret_flag), (URET X0, X0)>;
 def : Pat<(riscv_sret_flag), (SRET X0, X0)>;

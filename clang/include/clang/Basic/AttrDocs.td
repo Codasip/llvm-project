@@ -1841,6 +1841,16 @@ Version 1.10.
   }];
 }
 
+def RISCVOverlayDocs : Documentation {
+  let Category = DocCatFunction;
+  let Heading = "overlaycall (RISCV)";
+  let Content = [{
+The ``__attribute__((overlaycall))`` attribute indicates that a function
+resides in an overlay and therefore any calls to that functions must
+be handled by the overlay engine.
+  }];
+}
+
 def AVRInterruptDocs : Documentation {
   let Category = DocCatFunction;
   let Heading = "interrupt (AVR)";

@@ -57,6 +57,17 @@ public:
 
   ArrayRef<const char *> getGCCRegNames() const override;
 
+  TargetInfo::CallingConvCheckResult
+  checkCallingConvention(CallingConv CC) const override {
+    switch (CC) {
+    case CC_C:
+    case CC_RISCVOverlayCall:
+      return CCCR_OK;
+    default:
+      return CCCR_Warning;
+    }
+  }
+
   int getEHDataRegisterNumber(unsigned RegNo) const override {
     if (RegNo == 0)
       return 10;

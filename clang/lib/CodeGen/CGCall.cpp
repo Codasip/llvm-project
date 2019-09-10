@@ -64,6 +64,7 @@ unsigned CodeGenTypes::ClangCallConvToLLVMCallConv(CallingConv CC) {
   case CC_PreserveMost: return llvm::CallingConv::PreserveMost;
   case CC_PreserveAll: return llvm::CallingConv::PreserveAll;
   case CC_Swift: return llvm::CallingConv::Swift;
+  case CC_RISCVOverlayCall: return llvm::CallingConv::RISCV_OverlayCall;
   }
 }
 
@@ -237,6 +238,9 @@ static CallingConv getCallingConventionForDecl(const Decl *D, bool IsWindows) {
 
   if (D->hasAttr<PreserveAllAttr>())
     return CC_PreserveAll;
+
+  if (D->hasAttr<RISCVOverlayFuncAttr>())
+    return CC_RISCVOverlayCall;
 
   return CC_C;
 }

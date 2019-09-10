@@ -904,6 +904,9 @@ void TypePrinter::printFunctionAfter(const FunctionType::ExtInfo &Info,
     case CC_PreserveAll:
       OS << " __attribute__((preserve_all))";
       break;
+    case CC_RISCVOverlayCall:
+      OS << " __attribute__((overlaycall))";
+      break;
     }
   }
 
@@ -1538,6 +1541,7 @@ void TypePrinter::printAttributedAfter(const AttributedType *T,
   case attr::MSABI: OS << "ms_abi"; break;
   case attr::SysVABI: OS << "sysv_abi"; break;
   case attr::RegCall: OS << "regcall"; break;
+  case attr::RISCVOverlayFunc: OS << "overlaycall"; break;
   case attr::Pcs: {
     OS << "pcs(";
    QualType t = T->getEquivalentType();

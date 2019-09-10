@@ -281,6 +281,7 @@ namespace clang {
     CC_PreserveMost, // __attribute__((preserve_most))
     CC_PreserveAll,  // __attribute__((preserve_all))
     CC_AArch64VectorCall, // __attribute__((aarch64_vector_pcs))
+    CC_RISCVOverlayCall,  // __attribute__((overlaycall))
   };
 
   /// Checks whether the given calling convention supports variadic
@@ -296,6 +297,7 @@ namespace clang {
     case CC_SpirFunction:
     case CC_OpenCLKernel:
     case CC_Swift:
+    case CC_RISCVOverlayCall:
       return false;
     default:
       return true;

@@ -1582,6 +1582,12 @@ def RISCVInterrupt : InheritableAttr, TargetSpecificAttr<TargetRISCV> {
   let Documentation = [RISCVInterruptDocs];
 }
 
+def RISCVOverlayFunc : DeclOrTypeAttr, TargetSpecificAttr<TargetRISCV> {
+  let Spellings = [GCC<"overlaycall">];
+  //let Subjects = SubjectList<[Function]>;
+  let Documentation = [RISCVOverlayDocs];
+}
+
 // This is not a TargetSpecificAttr so that is silently accepted and
 // ignored on other targets as encouraged by the OpenCL spec.
 //

@@ -232,6 +232,48 @@ void RISCVMCCodeEmitter::expandCustomFunctionCall(const MCInst &MI, raw_ostream 
     TmpInst = MCInstBuilder(RISCV::JALR).addReg(Ra).addReg(EntryPoint).addImm(0);
     Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
     support::endian::write(OS, Binary, support::little);
+  
+  } else if (MI.getOpcode() == RISCV::PseudoOVLCALLIndirect) {
+    Register Ra = RISCV::X1;
+    Register Token = RISCV::X30;
+    Register EntryPoint = RISCV::X31;
+
+    // Check the low bit of the target register to determine whether the
+    // call needs to go via the overlay system.
+    // Use x30 as a scratch register
+    unsigned TargetReg = MI.getOperand(0).getReg();
+    // andi x30, <target>, 1
+    TmpInst = MCInstBuilder(RISCV::ANDI).addReg(Token).addReg(TargetReg).addImm(1);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
+    // beqz x30, end
+    TmpInst = MCInstBuilder(RISCV::BEQ).addReg(Token).addReg(RISCV::X0).addImm(0);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
+
+    // FIXME: How to refer to a symbol here, instead of using a constant
+    Fixups.push_back(MCFixup::create(4, MCConstantExpr::create(8, Ctx),
+                                     MCFixupKind(RISCV::fixup_riscv_branch),
+                                     MI.getLoc()));
+    if (Relax)
+      Fixups.push_back(MCFixup::create(4, MCConstantExpr::create(0, Ctx),
+                                       MCFixupKind(RISCV::fixup_riscv_relax),
+                                       MI.getLoc()));
+
+    // If it's not equal, then call into the overlay system
+    // mv x30, <target>
+    TmpInst = MCInstBuilder(RISCV::ADD).addReg(Token).addReg(TargetReg).addReg(RISCV::X0);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
+    // mv <target>, x31
+    TmpInst = MCInstBuilder(RISCV::ADD).addReg(TargetReg).addReg(EntryPoint).addReg(RISCV::X0);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
+
+    // jalr ra, <target>
+    TmpInst = MCInstBuilder(RISCV::JALR).addReg(Ra).addReg(TargetReg).addImm(0);
+    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+    support::endian::write(OS, Binary, support::little);
   } else
     llvm_unreachable("Unexpected opcode!");
 
@@ -292,7 +334,8 @@ void RISCVMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
   }
 
   if (MI.getOpcode() == RISCV::PseudoCALLDirect ||
-      MI.getOpcode() == RISCV::PseudoOVLCALL) {
+      MI.getOpcode() == RISCV::PseudoOVLCALL ||
+      MI.getOpcode() == RISCV::PseudoOVLCALLIndirect) {
     expandCustomFunctionCall(MI, OS, Fixups, STI);
     MCNumEmitted += 3;
     return;
@@ -445,6 +488,12 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
     case RISCVMCExpr::VK_RISCV_CALL_PLT:
       FixupKind = RISCV::fixup_riscv_call_plt;
       RelaxCandidate = true;
+      break;
+    case RISCVMCExpr::VK_RISCV_OVL_LO:
+      FixupKind = RISCV::fixup_riscv_ovl_lo12_i;
+      break;
+    case RISCVMCExpr::VK_RISCV_OVL_HI:
+      FixupKind = RISCV::fixup_riscv_ovl_hi20;
       break;
     }
   } else if (Kind == MCExpr::SymbolRef &&

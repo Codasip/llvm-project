@@ -116,6 +116,8 @@ bool RISCVMCExpr::evaluateAsRelocatableImpl(MCValue &Res,
     case VK_RISCV_TPREL_ADD:
     case VK_RISCV_TLS_GOT_HI:
     case VK_RISCV_TLS_GD_HI:
+    case VK_RISCV_OVL_LO:
+    case VK_RISCV_OVL_HI:
       return false;
     }
   }
@@ -139,6 +141,8 @@ RISCVMCExpr::VariantKind RISCVMCExpr::getVariantKindForName(StringRef name) {
       .Case("tprel_add", VK_RISCV_TPREL_ADD)
       .Case("tls_ie_pcrel_hi", VK_RISCV_TLS_GOT_HI)
       .Case("tls_gd_pcrel_hi", VK_RISCV_TLS_GD_HI)
+      .Case("overlay_lo", VK_RISCV_OVL_LO)
+      .Case("overlay_hi", VK_RISCV_OVL_HI)
       .Default(VK_RISCV_Invalid);
 }
 
@@ -166,6 +170,10 @@ StringRef RISCVMCExpr::getVariantKindName(VariantKind Kind) {
     return "tls_ie_pcrel_hi";
   case VK_RISCV_TLS_GD_HI:
     return "tls_gd_pcrel_hi";
+  case VK_RISCV_OVL_LO:
+    return "overlay_lo";
+  case VK_RISCV_OVL_HI:
+    return "overlay_hi";
   }
 }
 

@@ -986,8 +986,12 @@ let isCall = 1, Defs = [X1], isCodeGenOnly = 0 in
 def PseudoOVLCALL : Pseudo<(outs), (ins call_symbol:$func), []> {
   let AsmString = "ovlcall\t$func";
 }
+def PseudoOVLCALLIndirect : Pseudo<(outs), (ins GPR:$rs1), []> {
+  let AsmString = "ovlcall_indirect\t$rs1";
+}
 def : Pat<(riscv_ovlcall tglobaladdr:$func), (PseudoOVLCALL tglobaladdr:$func)>;
 def : Pat<(riscv_ovlcall texternalsym:$func), (PseudoOVLCALL texternalsym:$func)>;
+def : Pat<(riscv_ovlcall GPR:$rs1), (PseudoOVLCALLIndirect GPR:$rs1)>;
 
 def : Pat<(riscv_uret_flag), (URET X0, X0)>;
 def : Pat<(riscv_sret_flag), (SRET X0, X0)>;

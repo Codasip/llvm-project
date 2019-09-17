@@ -440,9 +440,18 @@ static SDValue getTargetNode(ConstantPoolSDNode *N, SDLoc DL, EVT Ty,
 
 template <class NodeTy>
 SDValue RISCVTargetLowering::getAddr(NodeTy *N, SelectionDAG &DAG,
-                                     bool IsLocal) const {
+                                     bool IsLocal, bool IsOverlay) const {
   SDLoc DL(N);
   EVT Ty = getPointerTy(DAG.getDataLayout());
+
+  // Overlay calls are special. They are unaffected by -fpic or the code
+  // model, so they're handled first here.
+  if (IsOverlay) {
+    SDValue AddrLo = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVL_LO);
+    SDValue AddrHi = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVL_HI);
+    SDValue LoadHi = SDValue(DAG.getMachineNode(RISCV::LUI, DL, Ty, AddrHi), 0);
+    return SDValue(DAG.getMachineNode(RISCV::ADDI, DL, Ty, LoadHi, AddrLo), 0);
+  }
 
   if (isPositionIndependent()) {
     SDValue Addr = getTargetNode(N, DL, Ty, DAG, 0);
@@ -489,7 +498,18 @@ SDValue RISCVTargetLowering::lowerGlobalAddress(SDValue Op,
 
   const GlobalValue *GV = N->getGlobal();
   bool IsLocal = getTargetMachine().shouldAssumeDSOLocal(*GV->getParent(), GV);
-  SDValue Addr = getAddr(N, DAG, IsLocal);
+
+  // If we're loading a function address with the overlaycall calling
+  // convention then the GlobalAddress must be modified to refer to where
+  // the function resides in its overlay group
+  bool IsOverlay = false;
+  if (auto *F = dyn_cast<Function>(GV)) {
+    assert (Offset == 0);
+    if (F->getCallingConv() == CallingConv::RISCV_OverlayCall)
+      IsOverlay = true;
+  }
+
+  SDValue Addr = getAddr(N, DAG, IsLocal, IsOverlay);
 
   // In order to maximise the opportunity for common subexpression elimination,
   // emit a separate ADD node for the global address offset instead of folding
@@ -2307,6 +2327,19 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
       OpFlags = RISCVII::MO_PLT;
 
     Callee = DAG.getTargetExternalSymbol(S->getSymbol(), PtrVT, OpFlags);
+  } else {
+    // If this is an indirect call then the symbol could either be the address
+    // of a resident function or a reference into an overlay group. However
+    // if the current function is not in an overlay, and the referenced
+    // function is also not in an overlay then we *do not* want to do the call
+    // via the overlay system.
+    //
+    // Because it is an indirect call we don't know at compile time whether
+    // the referenced function is in an overlay or not, so extra code needs
+    // to be emitted to check. This is achieved by checking the bottom bit
+    // which is always '1' if the address referes to an overlay group.
+    if (MF.getFunction().getCallingConv() != CallingConv::RISCV_OverlayCall)
+      isOVLCC = true;  // FIXME: Use a different flag
   }
 
   // The first call operand is the chain and the second is the target address.

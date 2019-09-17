@@ -38,6 +38,8 @@ public:
     VK_RISCV_CALL_PLT,
     VK_RISCV_OVLCALL,
     VK_RISCV_OVL2RESCALL,
+    VK_RISCV_OVL_LO,
+    VK_RISCV_OVL_HI,
     VK_RISCV_32_PCREL,
     VK_RISCV_Invalid
   };

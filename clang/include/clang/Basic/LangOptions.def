@@ -348,6 +348,8 @@ LANGOPT(RegisterStaticDestructors, 1, 1, "Register C++ static destructors")
 
 COMPATIBLE_VALUE_LANGOPT(MaxTokens, 32, 0, "Max number of tokens per TU or 0")
 
+LANGOPT(OverlayFunctions, 1, 0, "RISC-V overlay functions support")
+
 #undef LANGOPT
 #undef COMPATIBLE_LANGOPT
 #undef BENIGN_LANGOPT

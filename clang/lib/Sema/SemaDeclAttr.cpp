@@ -4594,6 +4594,11 @@ bool Sema::CheckCallingConvAttr(const ParsedAttr &Attrs, CallingConv &CC,
     CC = CC_PreserveAll;
     break;
   case ParsedAttr::AT_RISCVOverlayFunc:
+    if (!getLangOpts().OverlayFunctions) {
+      Attrs.setInvalid();
+      Diag(Attrs.getLoc(), diag::err_overlaycall_unsupported);
+      return true;
+    }
     CC = CC_RISCVOverlayCall;
     break;
   default: llvm_unreachable("unexpected attribute kind");

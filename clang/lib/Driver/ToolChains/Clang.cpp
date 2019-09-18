@@ -1981,6 +1981,9 @@ void Clang::AddRISCVTargetArgs(const ArgList &Args,
 
   CmdArgs.push_back("-target-abi");
   CmdArgs.push_back(ABIName.data());
+
+  if (Args.getLastArg(options::OPT_fcomrv))
+    CmdArgs.push_back("-fcomrv");
 }
 
 void Clang::AddSparcTargetArgs(const ArgList &Args,

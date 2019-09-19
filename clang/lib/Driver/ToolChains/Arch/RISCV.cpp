@@ -362,6 +362,14 @@ void riscv::getRISCVTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   if (!getArchFeatures(D, MArch, Features, Args))
     return;
 
+  // Handle features corresponding to custom language feature "OverlayFunctions"
+  if (Args.hasArg(options::OPT_fcomrv)) {
+    Features.push_back("+reserve-x28"); // Stack Register
+    Features.push_back("+reserve-x29"); // Stack Frames Pool Register
+    Features.push_back("+reserve-x30"); // Overlay Address Token Reg // ??
+    Features.push_back("+reserve-x31"); // Entry Point Address Register
+  }
+
   // Handle features corresponding to "-ffixed-X" options
   if (Args.hasArg(options::OPT_ffixed_x1))
     Features.push_back("+reserve-x1");

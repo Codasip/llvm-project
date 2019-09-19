@@ -658,6 +658,12 @@ static MCSectionELF *selectELFSectionForGlobal(
     Name = getSectionPrefixForGlobal(Kind);
   }
 
+  // For overlay functions, add the section prefix ".ovlfn"
+  if (isa<Function>(GO) &&
+      cast<Function>(GO)->getCallingConv() ==
+          llvm::CallingConv::RISCV_OverlayCall)
+    Name += ".ovlfn";
+
   if (const auto *F = dyn_cast<Function>(GO)) {
     const auto &OptionalPrefix = F->getSectionPrefix();
     if (OptionalPrefix)
@@ -701,6 +707,11 @@ MCSection *TargetLoweringObjectFileELF::SelectSectionForGlobal(
     EmitUniqueSection = true;
     Flags |= ELF::SHF_LINK_ORDER;
   }
+
+  if (Kind.isText() && isa<Function>(GO) &&
+      cast<Function>(GO)->getCallingConv() ==
+          llvm::CallingConv::RISCV_OverlayCall)
+    EmitUniqueSection = true;
 
   MCSectionELF *Section = selectELFSectionForGlobal(
       getContext(), GO, Kind, getMangler(), TM, EmitUniqueSection, Flags,

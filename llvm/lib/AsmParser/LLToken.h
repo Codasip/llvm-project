@@ -171,6 +171,7 @@ enum Kind {
   kw_amdgpu_cs,
   kw_amdgpu_kernel,
   kw_tailcc,
+  kw_riscv_overlaycall,
 
   // Attributes:
   kw_attributes,

@@ -57,6 +57,14 @@ def riscv_srlw      : SDNode<"RISCVISD::SRLW", SDTIntShiftOp>;
 def riscv_ovlcall   : SDNode<"RISCVISD::OVLCALL", SDT_RISCVCall,
                              [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
                               SDNPVariadic]>;
+def riscv_ovlcall_from_resident : SDNode<"RISCVISD::OVLCALL_FROM_RESIDENT",
+                                          SDT_RISCVCall,
+                                          [SDNPHasChain, SDNPOptInGlue,
+                                           SDNPOutGlue, SDNPVariadic]>;
+def riscv_ovlcall_from_overlay  : SDNode<"RISCVISD::OVLCALL_FROM_OVERLAY",
+                                          SDT_RISCVCall,
+                                          [SDNPHasChain, SDNPOptInGlue,
+                                           SDNPOutGlue, SDNPVariadic]>;
 
 //===----------------------------------------------------------------------===//
 // Operand and SDNode transformation definitions.
@@ -970,28 +978,43 @@ def PseudoCALL : Pseudo<(outs), (ins call_symbol:$func), []> {
   let AsmString = "call\t$func";
 }
 
-//def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALL tglobaladdr:$func)>;
+def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALL tglobaladdr:$func)>;
 def : Pat<(riscv_call texternalsym:$func), (PseudoCALL texternalsym:$func)>;
 
-// Example of a direct call {FIXME: properties}
+// Overlay call handling
 let isCall = 1, Defs = [X1], isCodeGenOnly = 0, mayStore = 0, mayLoad = 0,
-    hasSideEffects = 0 in
-def PseudoCALLDirect : Pseudo<(outs), (ins call_symbol:$func), []> {
-  let AsmString = "directcall\t$func";
+    hasSideEffects = 0 in {
+  def PseudoOVLCALL : Pseudo<(outs), (ins call_symbol:$func), []> {
+    let AsmString = "ovlcall\t$func";
+  }
+  // It is not possible to do an indirect call with a plain "ovlcall" because
+  // the expansion depends on knowing whether or not the caller is in an
+  // overlay.
+  def PseudoOVLCALLFromOverlay : Pseudo<(outs), (ins call_symbol:$func), []> {
+    let AsmString = "ovlcall_from_overlay\t$func";
+  }
+  def PseudoOVLCALLIndirectFromOverlay : Pseudo<(outs), (ins GPR:$rs1), []> {
+    let AsmString = "ovlcall_from_overlay\t$rs1";
+  }
+  def PseudoOVLCALLFromResident : Pseudo<(outs), (ins call_symbol:$func), []> {
+    let AsmString = "ovlcall_from_resident\t$func";
+  }
+  def PseudoOVLCALLIndirectFromResident : Pseudo<(outs), (ins GPR:$rs1), []> {
+    let AsmString = "ovlcall_from_resident\t$rs1";
+  }
 }
 
-def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALLDirect tglobaladdr:$func)>;
-
-let isCall = 1, Defs = [X1], isCodeGenOnly = 0 in
-def PseudoOVLCALL : Pseudo<(outs), (ins call_symbol:$func), []> {
-  let AsmString = "ovlcall\t$func";
-}
-def PseudoOVLCALLIndirect : Pseudo<(outs), (ins GPR:$rs1), []> {
-  let AsmString = "ovlcall_indirect\t$rs1";
-}
-def : Pat<(riscv_ovlcall tglobaladdr:$func), (PseudoOVLCALL tglobaladdr:$func)>;
+def : Pat<(riscv_ovlcall tglobaladdr:$func),  (PseudoOVLCALL tglobaladdr:$func)>;
 def : Pat<(riscv_ovlcall texternalsym:$func), (PseudoOVLCALL texternalsym:$func)>;
-def : Pat<(riscv_ovlcall GPR:$rs1), (PseudoOVLCALLIndirect GPR:$rs1)>;
+
+// Indirect calls will explicitly use the RISCVISD::OVLCALL_FROM_RESIDENT or
+// RISCVISD::OVLCALL_FROM_OVERLAY nodes because codegen depends on whether
+// the call is from within an overlay or not.
+def : Pat<(riscv_ovlcall_from_resident GPR:$rs1),
+          (PseudoOVLCALLIndirectFromResident GPR:$rs1)>;
+def : Pat<(riscv_ovlcall_from_overlay GPR:$rs1),
+          (PseudoOVLCALLIndirectFromOverlay GPR:$rs1)>;
+
 
 def : Pat<(riscv_uret_flag), (URET X0, X0)>;
 def : Pat<(riscv_sret_flag), (SRET X0, X0)>;

@@ -226,7 +226,8 @@ bool RISCVMCExpr::evaluateAsConstant(int64_t &Res) const {
       Kind == VK_RISCV_GOT_HI || Kind == VK_RISCV_TPREL_HI ||
       Kind == VK_RISCV_TPREL_LO || Kind == VK_RISCV_TPREL_ADD ||
       Kind == VK_RISCV_TLS_GOT_HI || Kind == VK_RISCV_TLS_GD_HI ||
-      Kind == VK_RISCV_CALL || Kind == VK_RISCV_CALL_PLT)
+      Kind == VK_RISCV_CALL || Kind == VK_RISCV_CALL_PLT ||
+      Kind == VK_RISCV_OVLCALL || Kind == VK_RISCV_OVL2RESCALL)
     return false;
 
   if (!getSubExpr()->evaluateAsRelocatable(Value, nullptr, nullptr))

@@ -337,7 +337,9 @@ public:
       return false;
     return RISCVAsmParser::classifySymbolRef(getImm(), VK, Imm) &&
            (VK == RISCVMCExpr::VK_RISCV_CALL ||
-            VK == RISCVMCExpr::VK_RISCV_CALL_PLT);
+            VK == RISCVMCExpr::VK_RISCV_CALL_PLT ||
+            VK == RISCVMCExpr::VK_RISCV_OVLCALL ||
+            VK == RISCVMCExpr::VK_RISCV_OVL2RESCALL);
   }
 
   bool isPseudoJumpSymbol() const {
@@ -1247,8 +1249,10 @@ OperandMatchResultTy RISCVAsmParser::parseBareSymbol(OperandVector &Operands) {
   if (getParser().parseIdentifier(Identifier))
     return MatchOperand_ParseFail;
 
-  if (Identifier.consume_back("@plt")) {
-    Error(getLoc(), "'@plt' operand not valid for instruction");
+  if (Identifier.consume_back("@plt") ||
+      Identifier.consume_back("@overlay") ||
+      Identifier.consume_back("@resident")) {
+    Error(getLoc(), "modifier on operand not valid for instruction");
     return MatchOperand_ParseFail;
   }
 
@@ -1304,6 +1308,12 @@ OperandMatchResultTy RISCVAsmParser::parseCallSymbol(OperandVector &Operands) {
   RISCVMCExpr::VariantKind Kind = RISCVMCExpr::VK_RISCV_CALL;
   if (Identifier.consume_back("@plt"))
     Kind = RISCVMCExpr::VK_RISCV_CALL_PLT;
+
+  if (Identifier.consume_back("@overlay"))
+    Kind = RISCVMCExpr::VK_RISCV_OVLCALL;
+
+  if (Identifier.consume_back("@resident"))
+    Kind = RISCVMCExpr::VK_RISCV_OVL2RESCALL;
 
   MCSymbol *Sym = getContext().getOrCreateSymbol(Identifier);
   Res = MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_None, getContext());

@@ -35,6 +35,8 @@ enum NodeType : unsigned {
   // CALL equivalent nodes for other calling conventions (required since an
   // application may consist of various CCs)
   OVLCALL,
+  OVLCALL_FROM_RESIDENT,
+  OVLCALL_FROM_OVERLAY,
   // RV64I shifts, directly matching the semantics of the named RISC-V
   // instructions.
   SLLW,

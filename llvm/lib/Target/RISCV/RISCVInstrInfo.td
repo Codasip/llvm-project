@@ -989,15 +989,10 @@ let isCall = 1, Defs = [X1], isCodeGenOnly = 0, mayStore = 0, mayLoad = 0,
   }
   // It is not possible to do an indirect call with a plain "ovlcall" because
   // the expansion depends on knowing whether or not the caller is in an
-  // overlay.
-  def PseudoOVLCALLFromOverlay : Pseudo<(outs), (ins call_symbol:$func), []> {
-    let AsmString = "ovlcall_from_overlay\t$func";
-  }
+  // overlay. These pseudo instructions are used instead and take a register
+  // operand instead of an immediate.
   def PseudoOVLCALLIndirectFromOverlay : Pseudo<(outs), (ins GPR:$rs1), []> {
     let AsmString = "ovlcall_from_overlay\t$rs1";
-  }
-  def PseudoOVLCALLFromResident : Pseudo<(outs), (ins call_symbol:$func), []> {
-    let AsmString = "ovlcall_from_resident\t$func";
   }
   def PseudoOVLCALLIndirectFromResident : Pseudo<(outs), (ins GPR:$rs1), []> {
     let AsmString = "ovlcall_from_resident\t$rs1";

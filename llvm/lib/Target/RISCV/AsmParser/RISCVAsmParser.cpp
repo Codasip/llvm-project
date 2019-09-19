@@ -1249,10 +1249,8 @@ OperandMatchResultTy RISCVAsmParser::parseBareSymbol(OperandVector &Operands) {
   if (getParser().parseIdentifier(Identifier))
     return MatchOperand_ParseFail;
 
-  if (Identifier.consume_back("@plt") ||
-      Identifier.consume_back("@overlay") ||
-      Identifier.consume_back("@resident")) {
-    Error(getLoc(), "modifier on operand not valid for instruction");
+  if (Identifier.consume_back("@plt")) {
+    Error(getLoc(), "'@plt' operand not valid for instruction");
     return MatchOperand_ParseFail;
   }
 

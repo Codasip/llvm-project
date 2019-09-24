@@ -557,7 +557,8 @@ public:
     return IsValid && ((IsConstantImm && VK == RISCVMCExpr::VK_RISCV_None) ||
                        VK == RISCVMCExpr::VK_RISCV_LO ||
                        VK == RISCVMCExpr::VK_RISCV_PCREL_LO ||
-                       VK == RISCVMCExpr::VK_RISCV_TPREL_LO);
+                       VK == RISCVMCExpr::VK_RISCV_TPREL_LO ||
+                       VK == RISCVMCExpr::VK_RISCV_OVLPLT_LO);
   }
 
   bool isSImm12Lsb0() const { return isBareSimmNLsb0<12>(); }
@@ -584,11 +585,13 @@ public:
     if (!IsConstantImm) {
       IsValid = RISCVAsmParser::classifySymbolRef(getImm(), VK, Imm);
       return IsValid && (VK == RISCVMCExpr::VK_RISCV_HI ||
-                         VK == RISCVMCExpr::VK_RISCV_TPREL_HI);
+                         VK == RISCVMCExpr::VK_RISCV_TPREL_HI ||
+                         VK == RISCVMCExpr::VK_RISCV_OVLPLT_HI);
     } else {
       return isUInt<20>(Imm) && (VK == RISCVMCExpr::VK_RISCV_None ||
                                  VK == RISCVMCExpr::VK_RISCV_HI ||
-                                 VK == RISCVMCExpr::VK_RISCV_TPREL_HI);
+                                 VK == RISCVMCExpr::VK_RISCV_TPREL_HI ||
+                                 VK == RISCVMCExpr::VK_RISCV_OVLPLT_HI);
     }
   }
 

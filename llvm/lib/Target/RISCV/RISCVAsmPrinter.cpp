@@ -44,6 +44,8 @@ public:
 
   StringRef getPassName() const override { return "RISCV Assembly Printer"; }
 
+  const MCExpr *lowerConstant(const Constant *CV) override;
+
   void emitInstruction(const MachineInstr *MI) override;
 
   bool PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
@@ -152,6 +154,18 @@ bool RISCVAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
   }
 
   return AsmPrinter::PrintAsmMemoryOperand(MI, OpNo, ExtraCode, OS);
+}
+
+const MCExpr *RISCVAsmPrinter::lowerConstant(const Constant *CV) {
+  if (auto *Fn = dyn_cast<Function>(CV)) {
+    if (Fn->getCallingConv() == llvm::CallingConv::RISCV_OverlayCall) {
+      const MCSymbolRefExpr *Expr =
+          MCSymbolRefExpr::create(getSymbol(cast<GlobalValue>(CV)),
+                                  MCSymbolRefExpr::VK_RISCV_OVLPLT, OutContext);
+      return Expr;
+    }
+  }
+  return AsmPrinter::lowerConstant(CV);
 }
 
 // Force static initialization.

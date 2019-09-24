@@ -447,8 +447,8 @@ SDValue RISCVTargetLowering::getAddr(NodeTy *N, SelectionDAG &DAG,
   // Overlay calls are special. They are unaffected by -fpic or the code
   // model, so they're handled first here.
   if (IsOverlay) {
-    SDValue AddrLo = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVL_LO);
-    SDValue AddrHi = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVL_HI);
+    SDValue AddrLo = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVLPLT_LO);
+    SDValue AddrHi = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVLPLT_HI);
     SDValue LoadHi = SDValue(DAG.getMachineNode(RISCV::LUI, DL, Ty, AddrHi), 0);
     return SDValue(DAG.getMachineNode(RISCV::ADDI, DL, Ty, LoadHi, AddrLo), 0);
   }

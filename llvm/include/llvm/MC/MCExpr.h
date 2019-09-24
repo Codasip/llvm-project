@@ -309,6 +309,9 @@ public:
     VK_AMDGPU_ABS32_LO,      // symbol@abs32@lo
     VK_AMDGPU_ABS32_HI,      // symbol@abs32@hi
 
+    // A SymbolRef VK is needed in order to parse e.g. `.word foo@overlay_plt`
+    VK_RISCV_OVLPLT,         // overlay_plt
+
     VK_TPREL,
     VK_DTPREL
   };

@@ -84,6 +84,9 @@ enum Fixups {
 
   fixup_riscv_ovl_hi20,
   fixup_riscv_ovl_lo12_i,
+  fixup_riscv_ovlplt_hi20,
+  fixup_riscv_ovlplt_lo12_i,
+  fixup_riscv_ovlplt32,
 
   // fixup_riscv_invalid - used as a sentinel and a marker, must be last fixup
   fixup_riscv_invalid,

@@ -101,6 +101,10 @@ unsigned RISCVELFObjectWriter::getRelocType(MCContext &Ctx,
     if (Expr->getKind() == MCExpr::Target &&
         cast<RISCVMCExpr>(Expr)->getKind() == RISCVMCExpr::VK_RISCV_32_PCREL)
       return ELF::R_RISCV_32_PCREL;
+    if (Expr->getKind() == MCExpr::SymbolRef &&
+        cast<MCSymbolRefExpr>(Expr)->getKind() ==
+          MCSymbolRefExpr::VK_RISCV_OVLPLT)
+      return ELF::R_RISCV_OVLPLT32;
     return ELF::R_RISCV_32;
   case FK_Data_8:
     return ELF::R_RISCV_64;
@@ -146,6 +150,10 @@ unsigned RISCVELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_RISCV_OVL_HI20;
   case RISCV::fixup_riscv_ovl_lo12_i:
     return ELF::R_RISCV_OVL_LO12_I;
+  case RISCV::fixup_riscv_ovlplt_hi20:
+    return ELF::R_RISCV_OVLPLT_HI20;
+  case RISCV::fixup_riscv_ovlplt_lo12_i:
+    return ELF::R_RISCV_OVLPLT_LO12_I;
   }
 }
 

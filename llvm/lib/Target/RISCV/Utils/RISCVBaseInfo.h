@@ -67,6 +67,8 @@ enum {
   MO_OVL2RESCALL = 14,
   MO_OVL_LO = 15,
   MO_OVL_HI = 16,
+  MO_OVLPLT_LO = 17,
+  MO_OVLPLT_HI = 18,
 
   // Used to differentiate between target-specific "direct" flags and "bitmask"
   // flags. A machine operand can only have one "direct" flag, but can have

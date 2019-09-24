@@ -143,6 +143,8 @@ RISCVMCExpr::VariantKind RISCVMCExpr::getVariantKindForName(StringRef name) {
       .Case("tls_gd_pcrel_hi", VK_RISCV_TLS_GD_HI)
       .Case("overlay_lo", VK_RISCV_OVL_LO)
       .Case("overlay_hi", VK_RISCV_OVL_HI)
+      .Case("overlay_pltlo", VK_RISCV_OVLPLT_LO)
+      .Case("overlay_plthi", VK_RISCV_OVLPLT_HI)
       .Default(VK_RISCV_Invalid);
 }
 
@@ -174,6 +176,10 @@ StringRef RISCVMCExpr::getVariantKindName(VariantKind Kind) {
     return "overlay_lo";
   case VK_RISCV_OVL_HI:
     return "overlay_hi";
+  case VK_RISCV_OVLPLT_LO:
+    return "overlay_pltlo";
+  case VK_RISCV_OVLPLT_HI:
+    return "overlay_plthi";
   }
 }
 

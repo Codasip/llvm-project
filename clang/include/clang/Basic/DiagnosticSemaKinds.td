@@ -297,6 +297,8 @@ def note_riscv_repeated_interrupt_attribute : Note<
 def err_overlaycall_unsupported : Error<
   "RISC-V 'overlaycall' attribute requires support to be enabled with "
   "the -fcomrv option">;
+def err_overlaycall_static : Error<
+  "RISC-V 'overlaycall' attribute not supported on static functions">;
 def warn_unused_parameter : Warning<"unused parameter %0">,
   InGroup<UnusedParameter>, DefaultIgnore;
 def warn_unused_variable : Warning<"unused variable %0">,

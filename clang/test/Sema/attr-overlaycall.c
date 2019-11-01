@@ -1,5 +1,5 @@
-// RUN: %clang_cc1 -triple riscv32 -fsyntax-only -verify %s
-// RUN: %clang_cc1 -triple riscv64 -fsyntax-only -verify %s
+// RUN: %clang_cc1 -triple riscv32 -fcomrv -fsyntax-only -verify %s
+// RUN: %clang_cc1 -triple riscv64 -fcomrv -fsyntax-only -verify %s
 
 int notAFunction __attribute__((overlaycall));
 // expected-warning@-1 {{'overlaycall' only applies to function types; type here is 'int'}}
@@ -22,3 +22,10 @@ void bar(int x) {
   void __attribute__((overlaycall)) (*fooPtr)(int) = &foo;
   fooPtr(x);
 }
+
+static void staticcall() __attribute__((overlaycall)) {}
+// expected-error@-1 {{attribute not supported on static functions}}
+// expected-warning@-2 {{GCC does not allow 'overlaycall' attribute in this position on a function definition}}
+
+static void __attribute__((overlaycall)) staticcall2(){}
+// expected-error@-1 {{attribute not supported on static functions}}

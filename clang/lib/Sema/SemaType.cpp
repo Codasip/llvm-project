@@ -7251,6 +7251,15 @@ static bool handleFunctionTypeAttr(TypeProcessingState &state, ParsedAttr &attr,
     }
   }
 
+  // Diagnose use of overlay calling convention on static functions
+  if (CC == CC_RISCVOverlayCall) {
+    if (state.getDeclarator().getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_static) {
+      S.Diag(attr.getLoc(), diag::err_overlaycall_static);
+      attr.setInvalid();
+      return true;
+    }
+  }
+
   // Also diagnose fastcall with regparm.
   if (CC == CC_X86FastCall && fn->getHasRegParm()) {
     S.Diag(attr.getLoc(), diag::err_attributes_are_not_compatible)

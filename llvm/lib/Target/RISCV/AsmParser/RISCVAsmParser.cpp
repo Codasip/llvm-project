@@ -1688,7 +1688,53 @@ bool RISCVAsmParser::parseDirectiveOption() {
   return false;
 }
 
+// Since only a RISCVGenSubtargetInfo is available here, extract register
+// reservation directly from the STI bitfields.
+static bool isRegisterReserved(Register Reg, const MCSubtargetInfo &STI) {
+  switch (Reg) {
+  default: return false;
+  case RISCV::X1: return STI.getFeatureBits()[RISCV::FeatureReserveX1];
+  case RISCV::X2: return STI.getFeatureBits()[RISCV::FeatureReserveX2];
+  case RISCV::X3: return STI.getFeatureBits()[RISCV::FeatureReserveX3];
+  case RISCV::X4: return STI.getFeatureBits()[RISCV::FeatureReserveX4];
+  case RISCV::X5: return STI.getFeatureBits()[RISCV::FeatureReserveX5];
+  case RISCV::X6: return STI.getFeatureBits()[RISCV::FeatureReserveX6];
+  case RISCV::X7: return STI.getFeatureBits()[RISCV::FeatureReserveX7];
+  case RISCV::X8: return STI.getFeatureBits()[RISCV::FeatureReserveX8];
+  case RISCV::X9: return STI.getFeatureBits()[RISCV::FeatureReserveX9];
+  case RISCV::X10: return STI.getFeatureBits()[RISCV::FeatureReserveX10];
+  case RISCV::X11: return STI.getFeatureBits()[RISCV::FeatureReserveX11];
+  case RISCV::X12: return STI.getFeatureBits()[RISCV::FeatureReserveX12];
+  case RISCV::X13: return STI.getFeatureBits()[RISCV::FeatureReserveX13];
+  case RISCV::X14: return STI.getFeatureBits()[RISCV::FeatureReserveX14];
+  case RISCV::X15: return STI.getFeatureBits()[RISCV::FeatureReserveX15];
+  case RISCV::X16: return STI.getFeatureBits()[RISCV::FeatureReserveX16];
+  case RISCV::X17: return STI.getFeatureBits()[RISCV::FeatureReserveX17];
+  case RISCV::X18: return STI.getFeatureBits()[RISCV::FeatureReserveX18];
+  case RISCV::X19: return STI.getFeatureBits()[RISCV::FeatureReserveX19];
+  case RISCV::X20: return STI.getFeatureBits()[RISCV::FeatureReserveX20];
+  case RISCV::X21: return STI.getFeatureBits()[RISCV::FeatureReserveX21];
+  case RISCV::X22: return STI.getFeatureBits()[RISCV::FeatureReserveX22];
+  case RISCV::X23: return STI.getFeatureBits()[RISCV::FeatureReserveX23];
+  case RISCV::X24: return STI.getFeatureBits()[RISCV::FeatureReserveX24];
+  case RISCV::X25: return STI.getFeatureBits()[RISCV::FeatureReserveX25];
+  case RISCV::X26: return STI.getFeatureBits()[RISCV::FeatureReserveX26];
+  case RISCV::X27: return STI.getFeatureBits()[RISCV::FeatureReserveX27];
+  case RISCV::X28: return STI.getFeatureBits()[RISCV::FeatureReserveX28];
+  case RISCV::X29: return STI.getFeatureBits()[RISCV::FeatureReserveX29];
+  case RISCV::X30: return STI.getFeatureBits()[RISCV::FeatureReserveX30];
+  case RISCV::X31: return STI.getFeatureBits()[RISCV::FeatureReserveX31];
+  }
+}
+
 void RISCVAsmParser::emitToStreamer(MCStreamer &S, const MCInst &Inst) {
+  // Provide a warning about defs of reserved registers.
+  auto &Desc = MII.get(Inst.getOpcode());
+  for (unsigned i = 0; i < Desc.getNumDefs(); i++) {
+    if (Inst.getOperand(i).isReg() && isRegisterReserved(Inst.getOperand(i).getReg(), getSTI()))
+      Warning(Inst.getLoc(), "Instruction modifies reserved register");
+  }
+
   MCInst CInst;
   bool Res = compressInst(CInst, Inst, getSTI(), S.getContext());
   if (Res)

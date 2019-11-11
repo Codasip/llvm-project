@@ -340,6 +340,7 @@ StringRef MCSymbolRefExpr::getVariantKindName(VariantKind Kind) {
   case VK_AMDGPU_ABS32_LO: return "abs32@lo";
   case VK_AMDGPU_ABS32_HI: return "abs32@hi";
   case VK_RISCV_OVLPLT: return "overlay_plt";
+  case VK_RISCV_OVL: return "overlay";
   }
   llvm_unreachable("Invalid variant kind");
 }
@@ -460,6 +461,7 @@ MCSymbolRefExpr::getVariantKindForName(StringRef Name) {
     .Case("abs32@lo", VK_AMDGPU_ABS32_LO)
     .Case("abs32@hi", VK_AMDGPU_ABS32_HI)
     .Case("overlay_plt", VK_RISCV_OVLPLT)
+    .Case("overlay", VK_RISCV_OVL)
     .Default(VK_Invalid);
 }
 

@@ -299,6 +299,9 @@ def err_overlaycall_unsupported : Error<
   "the -fcomrv option">;
 def err_overlaycall_static : Error<
   "RISC-V 'overlaycall' attribute not supported on static functions">;
+def err_overlaydata_unsupported : Error<
+  "RISC-V 'overlaydata' attribute requires support to be enabled with "
+  "the -fcomrv option">;
 def warn_unused_parameter : Warning<"unused parameter %0">,
   InGroup<UnusedParameter>, DefaultIgnore;
 def warn_unused_variable : Warning<"unused variable %0">,

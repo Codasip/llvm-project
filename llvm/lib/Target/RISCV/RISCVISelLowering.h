@@ -189,7 +189,7 @@ private:
 
   template <class NodeTy>
   SDValue getAddr(NodeTy *N, SelectionDAG &DAG, bool IsLocal = true,
-                  bool IsOverlay = false) const;
+                  unsigned SpecialMOLo = 0, unsigned SpecialMOHi = 0) const;
 
   SDValue getStaticTLSAddr(GlobalAddressSDNode *N, SelectionDAG &DAG,
                            bool UseGOT) const;

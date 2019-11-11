@@ -118,6 +118,11 @@ def SharedVar : SubsetSubject<Var,
 def GlobalVar : SubsetSubject<Var,
                              [{S->hasGlobalStorage()}], "global variables">;
 
+def GlobalConst : SubsetSubject<Var,
+                               [{S->hasGlobalStorage() &&
+                                 S->getType().isConstQualified()}],
+                               "global constants">;
+
 def InlineFunction : SubsetSubject<Function,
                              [{S->isInlineSpecified()}], "inline functions">;
 
@@ -1588,6 +1593,12 @@ def RISCVInterrupt : InheritableAttr, TargetSpecificAttr<TargetRISCV> {
 def RISCVOverlayFunc : DeclOrTypeAttr, TargetSpecificAttr<TargetRISCV> {
   let Spellings = [GCC<"overlaycall">];
   //let Subjects = SubjectList<[Function]>;
+  let Documentation = [RISCVOverlayDocs];
+}
+
+def RISCVOverlayData : TypeAttr, TargetSpecificAttr<TargetRISCV> {
+  let Spellings = [GCC<"overlaydata">];
+  let Subjects = SubjectList<[GlobalConst]>;
   let Documentation = [RISCVOverlayDocs];
 }
 

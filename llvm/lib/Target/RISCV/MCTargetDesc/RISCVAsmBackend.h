@@ -129,6 +129,7 @@ public:
       { "fixup_riscv_align",         0,      0,  0 },
       { "fixup_riscv_ovl_hi20",     12,     20,  0 },
       { "fixup_riscv_ovl_lo12_i",   20,     12,  0 },
+      { "fixup_riscv_ovl32",         0,     32,  0 },
       { "fixup_riscv_ovlplt_hi20",  12,     20,  0 },
       { "fixup_riscv_ovlplt_lo12_i",20,     12,  0 },
       { "fixup_riscv_ovlplt32",      0,     32,  0 },

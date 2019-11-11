@@ -4144,6 +4144,9 @@ void CodeGenModule::EmitGlobalVarDefinition(const VarDecl *D,
   if (CGDebugInfo *DI = getModuleDebugInfo())
     if (getCodeGenOpts().hasReducedDebugInfo())
       DI->EmitGlobalVariable(GV, D);
+
+  if (D->hasAttr<RISCVOverlayDataAttr>())
+    GV->addAttribute("overlay-data");
 }
 
 void CodeGenModule::EmitExternalVarDeclaration(const VarDecl *D) {

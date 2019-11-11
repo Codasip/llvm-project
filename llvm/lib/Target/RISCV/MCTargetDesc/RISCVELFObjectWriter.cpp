@@ -105,6 +105,10 @@ unsigned RISCVELFObjectWriter::getRelocType(MCContext &Ctx,
         cast<MCSymbolRefExpr>(Expr)->getKind() ==
           MCSymbolRefExpr::VK_RISCV_OVLPLT)
       return ELF::R_RISCV_OVLPLT32;
+    if (Expr->getKind() == MCExpr::SymbolRef &&
+        cast<MCSymbolRefExpr>(Expr)->getKind() ==
+          MCSymbolRefExpr::VK_RISCV_OVL)
+      return ELF::R_RISCV_OVL32;
     return ELF::R_RISCV_32;
   case FK_Data_8:
     return ELF::R_RISCV_64;

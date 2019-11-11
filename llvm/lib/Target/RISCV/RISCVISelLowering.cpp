@@ -440,15 +440,17 @@ static SDValue getTargetNode(ConstantPoolSDNode *N, SDLoc DL, EVT Ty,
 
 template <class NodeTy>
 SDValue RISCVTargetLowering::getAddr(NodeTy *N, SelectionDAG &DAG,
-                                     bool IsLocal, bool IsOverlay) const {
+                                     bool IsLocal, unsigned SpecialMOLo,
+                                     unsigned SpecialMOHi) const {
   SDLoc DL(N);
   EVT Ty = getPointerTy(DAG.getDataLayout());
 
   // Overlay calls are special. They are unaffected by -fpic or the code
   // model, so they're handled first here.
-  if (IsOverlay) {
-    SDValue AddrLo = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVLPLT_LO);
-    SDValue AddrHi = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_OVLPLT_HI);
+  if (SpecialMOLo || SpecialMOHi) {
+    assert(SpecialMOLo && SpecialMOHi && "MOFlags only on one half?");
+    SDValue AddrLo = getTargetNode(N, DL, Ty, DAG, SpecialMOLo);
+    SDValue AddrHi = getTargetNode(N, DL, Ty, DAG, SpecialMOHi);
     SDValue LoadHi = SDValue(DAG.getMachineNode(RISCV::LUI, DL, Ty, AddrHi), 0);
     return SDValue(DAG.getMachineNode(RISCV::ADDI, DL, Ty, LoadHi, AddrLo), 0);
   }
@@ -502,14 +504,23 @@ SDValue RISCVTargetLowering::lowerGlobalAddress(SDValue Op,
   // If we're loading a function address with the overlaycall calling
   // convention then the GlobalAddress must be modified to refer to where
   // the function resides in its overlay group
-  bool IsOverlay = false;
+  unsigned LoFlags = 0, HiFlags = 0;
   if (auto *F = dyn_cast<Function>(GV)) {
     assert (Offset == 0);
-    if (F->getCallingConv() == CallingConv::RISCV_OverlayCall)
-      IsOverlay = true;
+    if (F->getCallingConv() == CallingConv::RISCV_OverlayCall) {
+      LoFlags = RISCVII::MO_OVLPLT_LO;
+      HiFlags = RISCVII::MO_OVLPLT_HI;
+    }
+  }
+  else if (auto *GVar = dyn_cast<GlobalVariable>(GV)) {
+    if (GVar->hasAttribute("overlay-data")) {
+      assert (Offset == 0);
+      LoFlags = RISCVII::MO_OVL_LO;
+      HiFlags = RISCVII::MO_OVL_HI;
+    }
   }
 
-  SDValue Addr = getAddr(N, DAG, IsLocal, IsOverlay);
+  SDValue Addr = getAddr(N, DAG, IsLocal, LoFlags, HiFlags);
 
   // In order to maximise the opportunity for common subexpression elimination,
   // emit a separate ADD node for the global address offset instead of folding

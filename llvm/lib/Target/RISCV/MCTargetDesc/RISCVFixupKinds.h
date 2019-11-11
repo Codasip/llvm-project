@@ -84,6 +84,7 @@ enum Fixups {
 
   fixup_riscv_ovl_hi20,
   fixup_riscv_ovl_lo12_i,
+  fixup_riscv_ovl32,
   fixup_riscv_ovlplt_hi20,
   fixup_riscv_ovlplt_lo12_i,
   fixup_riscv_ovlplt32,

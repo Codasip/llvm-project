@@ -558,7 +558,8 @@ public:
                        VK == RISCVMCExpr::VK_RISCV_LO ||
                        VK == RISCVMCExpr::VK_RISCV_PCREL_LO ||
                        VK == RISCVMCExpr::VK_RISCV_TPREL_LO ||
-                       VK == RISCVMCExpr::VK_RISCV_OVLPLT_LO);
+                       VK == RISCVMCExpr::VK_RISCV_OVLPLT_LO||
+                       VK == RISCVMCExpr::VK_RISCV_OVL_LO);
   }
 
   bool isSImm12Lsb0() const { return isBareSimmNLsb0<12>(); }
@@ -586,12 +587,14 @@ public:
       IsValid = RISCVAsmParser::classifySymbolRef(getImm(), VK, Imm);
       return IsValid && (VK == RISCVMCExpr::VK_RISCV_HI ||
                          VK == RISCVMCExpr::VK_RISCV_TPREL_HI ||
-                         VK == RISCVMCExpr::VK_RISCV_OVLPLT_HI);
+                         VK == RISCVMCExpr::VK_RISCV_OVLPLT_HI ||
+                         VK == RISCVMCExpr::VK_RISCV_OVL_HI);
     } else {
       return isUInt<20>(Imm) && (VK == RISCVMCExpr::VK_RISCV_None ||
                                  VK == RISCVMCExpr::VK_RISCV_HI ||
                                  VK == RISCVMCExpr::VK_RISCV_TPREL_HI ||
-                                 VK == RISCVMCExpr::VK_RISCV_OVLPLT_HI);
+                                 VK == RISCVMCExpr::VK_RISCV_OVLPLT_HI ||
+                                 VK == RISCVMCExpr::VK_RISCV_OVL_HI);
     }
   }
 
@@ -1548,8 +1551,9 @@ bool RISCVAsmParser::classifySymbolRef(const MCExpr *Expr,
   }
 
   // It's a simple symbol reference or constant with no addend.
-  if (isa<MCConstantExpr>(Expr) || isa<MCSymbolRefExpr>(Expr))
+  if (isa<MCConstantExpr>(Expr) || isa<MCSymbolRefExpr>(Expr)) {
     return true;
+  }
 
   const MCBinaryExpr *BE = dyn_cast<MCBinaryExpr>(Expr);
   if (!BE)

@@ -2128,6 +2128,12 @@ InlineCost llvm::getInlineCost(
   if (!Callee)
     return llvm::InlineCost::getNever("indirect call");
 
+  // Don't inline overlay functions, or inline into overlay functions
+  if (Call.getFunction()->getCallingConv() == CallingConv::RISCV_OverlayCall)
+    return llvm::InlineCost::getNever("caller is overlaycall");
+  if (Callee && Callee->getCallingConv() == CallingConv::RISCV_OverlayCall)
+    return llvm::InlineCost::getNever("callee is overlaycall");
+
   // Never inline calls with byval arguments that does not have the alloca
   // address space. Since byval arguments can be replaced with a copy to an
   // alloca, the inlined code would need to be adjusted to handle that the

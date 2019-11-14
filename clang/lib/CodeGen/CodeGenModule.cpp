@@ -1633,6 +1633,11 @@ void CodeGenModule::SetLLVMFunctionAttributesForDefinition(const Decl *D,
     if (LangOpts.FunctionAlignment)
       F->setAlignment(llvm::Align(1ull << LangOpts.FunctionAlignment));
 
+  // Overlay functions must have a minimum 4-byte alignment.
+  if (F->getAlignment() < 4 &&
+      F->getCallingConv() == llvm::CallingConv::RISCV_OverlayCall)
+    F->setAlignment(llvm::Align(4));
+
   // Some C++ ABIs require 2-byte alignment for member functions, in order to
   // reserve a bit for differentiating between virtual and non-virtual member
   // functions. If the current target's C++ ABI requires this and this is a

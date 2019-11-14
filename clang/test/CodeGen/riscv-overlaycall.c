@@ -2,7 +2,7 @@
 // RUN:    | FileCheck %s
 
 int __attribute__((overlaycall)) test_overlay_func(void) {
-// CHECK-LABEL: define riscv_overlaycall{{.*}}@test_overlay_func()
+// CHECK-LABEL: define riscv_overlaycall{{.*}}@test_overlay_func(){{.*}}align 4
   return 5;
 }
 

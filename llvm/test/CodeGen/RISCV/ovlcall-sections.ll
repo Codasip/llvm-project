@@ -2,10 +2,10 @@
 
 ; Test for overlay functions being placed into the correct sections
 
-; foo is an overlay function so should be placed in .text.ovlfn.foo
+; foo is an overlay function so should be placed in .ovlinput.foo
 define dso_local riscv_overlaycall i32 @foo() {
 entry:
-; CHECK: .section .text.ovlfn.foo
+; CHECK: .section .ovlinput.foo
 ; CHECK-NEXT: .globl foo
 ; CHECK: foo:
 ; CHECK: .size foo

@@ -658,17 +658,18 @@ static MCSectionELF *selectELFSectionForGlobal(
     Name = getSectionPrefixForGlobal(Kind);
   }
 
-  // For overlay functions, add the section prefix ".ovlfn"
+  // For overlay functions, replace the default section name with ".ovlinput"
   if (isa<Function>(GO) &&
       cast<Function>(GO)->getCallingConv() ==
           llvm::CallingConv::RISCV_OverlayCall)
-    Name += ".ovlfn";
+    Name = ".ovlinput";
 
-  // For overlay data, add the section previx ".ovldata"
+  // For overlay data, also change the section prefix to ".ovlinput", since
+  // the overlay system mixes the two
   if (isa<GlobalVariable>(GO) &&
       cast<GlobalVariable>(GO)->hasAttribute("overlay-data")) {
     assert(Name == ".rodata" && "non-constant ovldata?");
-    Name += ".ovldata";
+    Name = ".ovlinput";
   }
 
   if (const auto *F = dyn_cast<Function>(GO)) {

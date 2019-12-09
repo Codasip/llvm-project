@@ -18,7 +18,4 @@ ovlcall b_symbol@resident
 
 # CHECK:      addi  t5, s0, 0
 # CHECK-NEXT: jalr  ra, 0(t6)
-ovlcall_from_overlay s0
-
-# FIXME: Add appropriate test code for this case
-ovlcall_from_resident s2
+ovlcall_indirect s0

@@ -2340,18 +2340,6 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
 
     Callee = DAG.getTargetExternalSymbol(S->getSymbol(), PtrVT, OpFlags);
   } else {
-    // If this is an indirect call then the symbol could either be the address
-    // of a resident function or a reference into an overlay group. However
-    // if the current function is not in an overlay, and the referenced
-    // function is also not in an overlay then we *do not* want to do the call
-    // via the overlay system.
-    //
-    // Because it is an indirect call we don't know at compile time whether
-    // the referenced function is in an overlay or not, so extra code needs
-    // to be emitted to check. This is achieved by checking the bottom bit
-    // which is always '1' if the address referes to an overlay group.
-    if (MF.getFunction().getCallingConv() != CallingConv::RISCV_OverlayCall)
-      isOVLCC = true;  // FIXME: Use a different flag
     isIndirect = true;
   }
 
@@ -2385,11 +2373,13 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     return DAG.getNode(RISCVISD::TAIL, DL, NodeTys, Ops);
   }
 
-  if (isIndirect) {
-    if (MF.getFunction().getCallingConv() == CallingConv::RISCV_OverlayCall)
-      Chain = DAG.getNode(RISCVISD::OVLCALL_FROM_OVERLAY, DL, NodeTys, Ops);
-    else
-      Chain = DAG.getNode(RISCVISD::OVLCALL_FROM_RESIDENT, DL, NodeTys, Ops);
+  // If this is an indirect function call and the caller is an overlaycall, then
+  // use an ovlcall_indirect node to indicate the call must go via the manager
+  // regardless of whether the callee is an ovlcall or not (will be either
+  // resident function or PLT stub)
+  if (isIndirect &&
+      MF.getFunction().getCallingConv() == CallingConv::RISCV_OverlayCall) {
+      Chain = DAG.getNode(RISCVISD::OVLCALL_INDIRECT, DL, NodeTys, Ops);
   } else if (isOVLCC) {
     Chain = DAG.getNode(RISCVISD::OVLCALL, DL, NodeTys, Ops);
   } else {
@@ -2606,10 +2596,8 @@ const char *RISCVTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "RISCVISD::READ_CYCLE_WIDE";
   case RISCVISD::OVLCALL:
     return "RISCVISD::OVLCALL";
-  case RISCVISD::OVLCALL_FROM_RESIDENT:
-    return "RISCVISD::OVLCALL_FROM_RESIDENT";
-  case RISCVISD::OVLCALL_FROM_OVERLAY:
-    return "RISCVISD::OVLCALL_FROM_OVERLAY";
+  case RISCVISD::OVLCALL_INDIRECT:
+    return "RISCVISD::OVLCALL_INDIRECT";
   }
   return nullptr;
 }

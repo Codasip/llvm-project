@@ -155,7 +155,7 @@ RISCVMCCodeEmitter::expandFunctionCallOverlay(const MCInst &MI, raw_ostream &OS,
   unsigned Opcode = MI.getOpcode();
   unsigned NumInstrs = 0;
   if (Opcode == RISCV::PseudoOVLCALL ||
-      Opcode == RISCV::PseudoOVLCALLIndirectFromOverlay) {
+      Opcode == RISCV::PseudoOVLCALLIndirect) {
     // OVLCALL -> LUI ; ADDI ; JALR
     // Note: Fixups are added manually since they are needed at non-zero offsets
     Register Ra = RISCV::X1;
@@ -199,7 +199,7 @@ RISCVMCCodeEmitter::expandFunctionCallOverlay(const MCInst &MI, raw_ostream &OS,
                                          MCFixupKind(RISCV::fixup_riscv_relax),
                                          MI.getLoc()));
     } else {
-      assert(Opcode == RISCV::PseudoOVLCALLIndirectFromOverlay);
+      assert(Opcode == RISCV::PseudoOVLCALLIndirect);
       Register TargetReg = MI.getOperand(0).getReg();
       // MV
       TmpInst = MCInstBuilder(RISCV::ADDI).addReg(Token).addReg(TargetReg).addImm(0);
@@ -210,52 +210,6 @@ RISCVMCCodeEmitter::expandFunctionCallOverlay(const MCInst &MI, raw_ostream &OS,
 
     // JALR
     TmpInst = MCInstBuilder(RISCV::JALR).addReg(Ra).addReg(EntryPoint).addImm(0);
-    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-    support::endian::write(OS, Binary, support::little);
-    NumInstrs++;
-  } else if (MI.getOpcode() == RISCV::PseudoOVLCALLIndirectFromResident) {
-    Register Ra = RISCV::X1;
-    Register Token = RISCV::X30;
-    Register EntryPoint = RISCV::X31;
-
-    // Check the low bit of the target register to determine whether the
-    // call needs to go via the overlay system.
-    // Use x30 as a scratch register
-    unsigned TargetReg = MI.getOperand(0).getReg();
-    // andi x30, <target>, 1
-    TmpInst = MCInstBuilder(RISCV::ANDI).addReg(Token).addReg(TargetReg).addImm(1);
-    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-    support::endian::write(OS, Binary, support::little);
-    NumInstrs++;
-    // beqz x30, end
-    TmpInst = MCInstBuilder(RISCV::BEQ).addReg(Token).addReg(RISCV::X0).addImm(0);
-    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-    support::endian::write(OS, Binary, support::little);
-    NumInstrs++;
-
-    // FIXME: How to refer to a symbol here, instead of using a constant
-    Fixups.push_back(MCFixup::create(4, MCConstantExpr::create(8, Ctx),
-                                     MCFixupKind(RISCV::fixup_riscv_branch),
-                                     MI.getLoc()));
-    if (Relax)
-      Fixups.push_back(MCFixup::create(4, MCConstantExpr::create(0, Ctx),
-                                       MCFixupKind(RISCV::fixup_riscv_relax),
-                                       MI.getLoc()));
-
-    // If it's not equal, then call into the overlay system
-    // mv x30, <target>
-    TmpInst = MCInstBuilder(RISCV::ADDI).addReg(Token).addReg(TargetReg).addImm(0);
-    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-    support::endian::write(OS, Binary, support::little);
-    NumInstrs++;
-    // mv <target>, x31
-    TmpInst = MCInstBuilder(RISCV::ADDI).addReg(TargetReg).addReg(EntryPoint).addImm(0);
-    Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-    support::endian::write(OS, Binary, support::little);
-    NumInstrs++;
-
-    // jalr ra, <target>
-    TmpInst = MCInstBuilder(RISCV::JALR).addReg(Ra).addReg(TargetReg).addImm(0);
     Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
     support::endian::write(OS, Binary, support::little);
     NumInstrs++;
@@ -320,8 +274,7 @@ void RISCVMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
   }
 
   if (MI.getOpcode() == RISCV::PseudoOVLCALL ||
-      MI.getOpcode() == RISCV::PseudoOVLCALLIndirectFromOverlay ||
-      MI.getOpcode() == RISCV::PseudoOVLCALLIndirectFromResident) {
+      MI.getOpcode() == RISCV::PseudoOVLCALLIndirect) {
     MCNumEmitted += expandFunctionCallOverlay(MI, OS, Fixups, STI);
     return;
   }

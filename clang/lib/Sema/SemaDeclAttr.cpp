@@ -4352,6 +4352,13 @@ static void handleGNUInlineAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
 }
 
 static void handleCallConvAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+  // __attribute__((overlaycall)) implies __attribute__((noinline))
+  if (D && AL.getKind() == ParsedAttr::AT_RISCVOverlayFunc) {
+    Attr *A = ::new(S.Context) NoInlineAttr(S.Context, AL);
+    A->setImplicit(true);
+    D->addAttr(A);
+  }
+
   if (hasDeclarator(D)) return;
 
   // Diagnostic is emitted elsewhere: here we store the (valid) AL

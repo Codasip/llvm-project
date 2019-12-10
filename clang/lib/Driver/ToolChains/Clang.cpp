@@ -1982,8 +1982,15 @@ void Clang::AddRISCVTargetArgs(const ArgList &Args,
   CmdArgs.push_back("-target-abi");
   CmdArgs.push_back(ABIName.data());
 
-  if (Args.getLastArg(options::OPT_fcomrv))
+  // If comrv mode is requested, pass on this flag, and produce an error if an
+  // invalid ABI has been requested
+  if (Args.getLastArg(options::OPT_fcomrv)) {
     CmdArgs.push_back("-fcomrv");
+
+    if (ABIName != "ilp32")
+      getToolChain().getDriver().Diag(diag::err_drv_invalid_riscv_abi_fcomrv)
+          << ABIName;
+  }
 }
 
 void Clang::AddSparcTargetArgs(const ArgList &Args,

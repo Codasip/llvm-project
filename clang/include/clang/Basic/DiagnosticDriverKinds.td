@@ -29,6 +29,8 @@ def err_drv_invalid_riscv_arch_name : Error<
   "invalid arch name '%0', %1">;
 def err_drv_invalid_riscv_ext_arch_name : Error<
   "invalid arch name '%0', %1 '%2'">;
+def err_drv_invalid_riscv_abi_fcomrv : Error<
+  "invalid ABI '%0' when using -fcomrv">;
 def warn_drv_avr_mcu_not_specified : Warning<
   "no target microcontroller specified on command line, cannot "
   "link standard libraries, please pass -mmcu=<mcu name>">,

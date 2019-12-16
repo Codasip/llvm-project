@@ -334,6 +334,11 @@ static cl::opt<bool>
          cl::cat(ObjdumpCat));
 static cl::alias WideShort("w", cl::Grouping, cl::aliasopt(Wide));
 
+cl::OptionCategory ComrvCat("llvm-objdump ComRV Specific Options");
+static cl::opt<bool>
+    PrintGrouping("grouping", cl::desc("Print the ComRV overlay tables"),
+                  cl::cat(ComrvCat));
+
 static cl::extrahelp
     HelpResponse("\nPass @FILE as argument to read options from FILE.\n");
 
@@ -2221,6 +2226,8 @@ static void dumpObject(ObjectFile *O, const Archive *A = nullptr,
     printRawClangAST(O);
   if (FaultMapSection)
     printFaultMaps(O);
+  if (PrintGrouping)
+    printComRVOverlayData(O);
 }
 
 static void dumpObject(const COFFImportFile *I, const Archive *A,
@@ -2292,7 +2299,8 @@ static void dumpInput(StringRef file) {
 int main(int argc, char **argv) {
   using namespace llvm;
   InitLLVM X(argc, argv);
-  const cl::OptionCategory *OptionFilters[] = {&ObjdumpCat, &MachOCat};
+  const cl::OptionCategory *OptionFilters[] = {&ObjdumpCat, &MachOCat,
+                                               &ComrvCat};
   cl::HideUnrelatedOptions(OptionFilters);
 
   // Initialize targets and assembly printers/parsers.
@@ -2325,7 +2333,7 @@ int main(int argc, char **argv) {
   if (!ArchiveHeaders && !Disassemble && DwarfDumpType == DIDT_Null &&
       !DynamicRelocations && !FileHeaders && !PrivateHeaders && !RawClangAST &&
       !Relocations && !SectionHeaders && !SectionContents && !SymbolTable &&
-      !UnwindInfo && !FaultMapSection &&
+      !UnwindInfo && !FaultMapSection && !PrintGrouping &&
       !(MachOOpt &&
         (Bind || DataInCode || DylibId || DylibsUsed || ExportsTrie ||
          FirstPrivateHeader || IndirectSymbols || InfoPlist || LazyBind ||

@@ -2333,6 +2333,12 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     Callee = DAG.getTargetGlobalAddress(GV, DL, PtrVT, 0, OpFlags);
   } else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(Callee)) {
     unsigned OpFlags = RISCVII::MO_CALL;
+    // In the case of the caller being an overlay function, make function calls
+    // use ovlcall (resident mode)
+    if (MF.getFunction().getCallingConv() == CallingConv::RISCV_OverlayCall) {
+      OpFlags = RISCVII::MO_OVL2RESCALL;
+      isOVLCC = true;
+    }
 
     if (!getTargetMachine().shouldAssumeDSOLocal(*MF.getFunction().getParent(),
                                                  nullptr))

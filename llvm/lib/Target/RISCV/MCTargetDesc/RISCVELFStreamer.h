@@ -25,6 +25,8 @@ public:
   virtual void emitDirectiveOptionNoRVC();
   virtual void emitDirectiveOptionRelax();
   virtual void emitDirectiveOptionNoRelax();
+  virtual void emitDirectiveOptionWarnReservedReg();
+  virtual void emitDirectiveOptionNoWarnReservedReg();
 };
 }
 #endif

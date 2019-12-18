@@ -45,3 +45,11 @@ void RISCVTargetAsmStreamer::emitDirectiveOptionRelax() {
 void RISCVTargetAsmStreamer::emitDirectiveOptionNoRelax() {
   OS << "\t.option\tnorelax\n";
 }
+
+void RISCVTargetAsmStreamer::emitDirectiveOptionWarnReservedReg() {
+  OS << "\t.option\twarnreservedreg\n";
+}
+
+void RISCVTargetAsmStreamer::emitDirectiveOptionNoWarnReservedReg() {
+  OS << "\t.option\tnowarnreservedreg\n";
+}

@@ -52,6 +52,7 @@ struct RISCVOperand;
 
 class RISCVAsmParser : public MCTargetAsmParser {
   SmallVector<FeatureBitset, 4> FeatureBitStack;
+  bool WarnOnReservedReg = true;
 
   SMLoc getLoc() const { return getParser().getTok().getLoc(); }
   bool isRV64() const { return getSTI().hasFeature(RISCV::Feature64Bit); }
@@ -1684,10 +1685,34 @@ bool RISCVAsmParser::parseDirectiveOption() {
     return false;
   }
 
+  if (Option == "warnreservedreg") {
+    getTargetStreamer().emitDirectiveOptionWarnReservedReg();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    WarnOnReservedReg = true;
+    return false;
+  }
+
+  if (Option == "nowarnreservedreg") {
+    getTargetStreamer().emitDirectiveOptionNoWarnReservedReg();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    WarnOnReservedReg = false;
+    return false;
+  }
+
   // Unknown option.
   Warning(Parser.getTok().getLoc(),
-          "unknown option, expected 'push', 'pop', 'rvc', 'norvc', 'relax' or "
-          "'norelax'");
+          "unknown option, expected 'push', 'pop', 'rvc', 'norvc', 'relax', "
+          "'norelax', 'warnreservedreg' or 'nowarnreservedreg'");
   Parser.eatToEndOfStatement();
   return false;
 }
@@ -1735,7 +1760,7 @@ void RISCVAsmParser::emitToStreamer(MCStreamer &S, const MCInst &Inst) {
   // Provide a warning about defs of reserved registers.
   auto &Desc = MII.get(Inst.getOpcode());
   for (unsigned i = 0; i < Desc.getNumDefs(); i++) {
-    if (Inst.getOperand(i).isReg() && isRegisterReserved(Inst.getOperand(i).getReg(), getSTI()))
+    if (Inst.getOperand(i).isReg() && isRegisterReserved(Inst.getOperand(i).getReg(), getSTI()) && WarnOnReservedReg)
       Warning(Inst.getLoc(), "Instruction modifies reserved register");
   }
 

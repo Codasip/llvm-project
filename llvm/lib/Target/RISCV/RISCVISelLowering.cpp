@@ -1855,10 +1855,13 @@ static bool CC_RISCV_FastCC(unsigned ValNo, MVT ValVT, MVT LocVT,
 
   if (LocVT == MVT::i32 || LocVT == MVT::i64) {
     // X5 and X6 might be used for save-restore libcall.
+    // ComRV: Do not use X28, X29, X30 nor X31 for FastCC, since these will be
+    // reserved. FIXME: Add support for removing registers that are reserved
+    // from this list.
     static const MCPhysReg GPRList[] = {
         RISCV::X10, RISCV::X11, RISCV::X12, RISCV::X13, RISCV::X14,
-        RISCV::X15, RISCV::X16, RISCV::X17, RISCV::X7,  RISCV::X28,
-        RISCV::X29, RISCV::X30, RISCV::X31};
+        RISCV::X15, RISCV::X16, RISCV::X17, RISCV::X7/*,  RISCV::X28,
+        RISCV::X29, RISCV::X30, RISCV::X31*/};
     if (unsigned Reg = State.AllocateReg(GPRList)) {
       State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
       return false;

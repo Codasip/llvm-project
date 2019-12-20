@@ -4405,6 +4405,17 @@ static void annotateAnyAllocSite(CallBase &Call, const TargetLibraryInfo *TLI) {
   }
 }
 
+// FIXME: Find a better place for this change.
+static bool CallingConvsAreCompatible (CallingConv::ID X, CallingConv::ID Y) {
+  if (X == Y)
+    return true;
+  if (X == CallingConv::RISCV_OverlayCall && Y == CallingConv::C)
+    return true;
+  if (X == CallingConv::C && Y == CallingConv::RISCV_OverlayCall)
+    return true;
+  return false;
+}
+
 /// Improvements for call, callbr and invoke instructions.
 Instruction *InstCombiner::visitCallBase(CallBase &Call) {
   if (isAllocationFn(&Call, &TLI))
@@ -4456,6 +4467,7 @@ Instruction *InstCombiner::visitCallBase(CallBase &Call) {
     // If the call and callee calling conventions don't match, this call must
     // be unreachable, as the call is undefined.
     if (CalleeF->getCallingConv() != Call.getCallingConv() &&
+        !CallingConvsAreCompatible(CalleeF->getCallingConv(), Call.getCallingConv()) &&
         // Only do this for calls to a function with a body.  A prototype may
         // not actually end up matching the implementation's calling conv for a
         // variety of reasons (e.g. it may be written in assembly).

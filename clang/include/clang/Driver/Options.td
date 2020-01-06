@@ -2305,6 +2305,9 @@ def mcmodel_EQ_medany : Flag<["-"], "mcmodel=medany">, Group<m_riscv_Features_Gr
 def fcomrv : Flag<["-"], "fcomrv">, Group<f_Group>,
   Flags<[DriverOption,CC1Option]>,
   HelpText<"Enable RISC-V overlay functions support">;
+def Wg_COMMA : CommaJoined<["-"], "Wg,">,
+  HelpText<"Pass the comma separated arguments to the overlay grouping tool">,
+  MetaVarName<"<arg>">, Group<Link_Group>;
 
 def munaligned_access : Flag<["-"], "munaligned-access">, Group<m_arm_Features_Group>,
   HelpText<"Allow memory accesses to be unaligned (AArch32/AArch64 only)">;

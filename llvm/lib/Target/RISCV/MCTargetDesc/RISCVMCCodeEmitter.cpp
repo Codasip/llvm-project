@@ -169,8 +169,9 @@ RISCVMCCodeEmitter::expandFunctionCallOverlay(const MCInst &MI, raw_ostream &OS,
       assert(RCallExpr->getSubExpr()->getKind() == MCExpr::SymbolRef);
       const MCSymbolRefExpr *Sym = cast<MCSymbolRefExpr>(RCallExpr->getSubExpr());
       bool isOVL = RCallExpr->getKind() == RISCVMCExpr::VK_RISCV_OVLCALL;
-      if (!isOVL)
-        assert(RCallExpr->getKind() == RISCVMCExpr::VK_RISCV_OVL2RESCALL);
+      if (!isOVL && (RCallExpr->getKind() != RISCVMCExpr::VK_RISCV_OVL2RESCALL))
+        report_fatal_error("symbol used with 'ovlcall' must be marked with "
+                           "either @resident or @overlay");
 
       // LUI
       TmpInst = MCInstBuilder(RISCV::LUI).addReg(Token).addImm(0);

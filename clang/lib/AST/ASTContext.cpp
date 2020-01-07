@@ -8763,8 +8763,15 @@ QualType ASTContext::mergeFunctionTypes(QualType lhs, QualType rhs,
   FunctionType::ExtInfo rbaseInfo = rbase->getExtInfo();
 
   // Compatible functions must have compatible calling conventions
-  if (lbaseInfo.getCC() != rbaseInfo.getCC())
-    return {};
+  // NOTE: This is not the case for the RISC-V OverlayCall type, this is
+  //       compatible with CCC, pointers can be used interchangably.
+  if (lbaseInfo.getCC() != rbaseInfo.getCC()) {
+    if (!((lbaseInfo.getCC() == CallingConv::CC_RISCVOverlayCall &&
+           rbaseInfo.getCC() == CallingConv::CC_C) ||
+          (rbaseInfo.getCC() == CallingConv::CC_RISCVOverlayCall &&
+           lbaseInfo.getCC() == CallingConv::CC_C)))
+      return {};
+  }
 
   // Regparm is part of the calling convention.
   if (lbaseInfo.getHasRegParm() != rbaseInfo.getHasRegParm())

@@ -15,14 +15,6 @@ void __attribute__((overlaycall)) incompatForwardDecl(int x) {}
 // expected-error@-1 {{function declared 'overlaycall' here was previously declared without calling convention}}
 // expected-note@-3 {{previous declaration is here}}
 
-void foo(int x) __attribute__((overlaycall));
-void bar(int x) {
-  void (*incompatFooPtr)(int) = &foo;
-  // expected-warning@-1 {{incompatible function pointer types initializing 'void (*)(int)' with an expression of type 'void (*)(int) __attribute__((overlaycall))'}}
-  void __attribute__((overlaycall)) (*fooPtr)(int) = &foo;
-  fooPtr(x);
-}
-
 static void staticcall() __attribute__((overlaycall)) {}
 // expected-error@-1 {{attribute not supported on static functions}}
 // expected-warning@-2 {{GCC does not allow 'overlaycall' attribute in this position on a function definition}}

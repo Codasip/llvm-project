@@ -202,7 +202,7 @@ void RISCV::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     std::string AllWgArgs = "";
     for (auto WgVal : WgArgs) {
       if (AllWgArgs.size() != 0 && WgVal.size() != 0)
-        AllWgArgs += ",";
+        AllWgArgs += ";";
       AllWgArgs += WgVal;
     }
     CmdArgs.push_back(Args.MakeArgString(AllWgArgs));

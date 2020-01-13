@@ -189,25 +189,6 @@ void RISCV::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (WantCRTs)
     CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtend)));
 
-  // Build grouping tool arguments from -Wg option if overlay enabled
-  if (Args.hasArgNoClaim(options::OPT_Wg_COMMA) &&
-      Args.hasArg(options::OPT_fcomrv)) {
-    std::string GroupingTool = getToolChain().GetProgramPath("overlay-grouper");
-    CmdArgs.push_back("--grouping-tool");
-    CmdArgs.push_back(Args.MakeArgString(GroupingTool));
-
-    CmdArgs.push_back("--grouping-tools-args");
-    std::vector<std::string> WgArgs =
-        Args.getAllArgValues(options::OPT_Wg_COMMA);
-    std::string AllWgArgs = "";
-    for (auto WgVal : WgArgs) {
-      if (AllWgArgs.size() != 0 && WgVal.size() != 0)
-        AllWgArgs += ";";
-      AllWgArgs += WgVal;
-    }
-    CmdArgs.push_back(Args.MakeArgString(AllWgArgs));
-  }
-
   CmdArgs.push_back("-o");
   CmdArgs.push_back(Output.getFilename());
   C.addCommand(std::make_unique<Command>(JA, *this, Args.MakeArgString(Linker),

@@ -11,6 +11,7 @@
 #include "Arch/ARM.h"
 #include "Arch/Mips.h"
 #include "Arch/PPC.h"
+#include "Arch/RISCV.h"
 #include "Arch/SystemZ.h"
 #include "Arch/X86.h"
 #include "HIP.h"
@@ -489,6 +490,17 @@ void tools::addLTOOptions(const ToolChain &ToolChain, const ArgList &Args,
   if (!StatsFile.empty())
     CmdArgs.push_back(
         Args.MakeArgString(Twine("-plugin-opt=stats-file=") + StatsFile));
+
+  // pass more options in specific target
+  switch (ToolChain.getArch()) {
+  default:
+    break;
+  case llvm::Triple::riscv32:
+  case llvm::Triple::riscv64: {
+    riscv::addRISCVGoldPluginAdditionFlags(ToolChain, Args, CmdArgs);
+    break;
+  }
+  }
 }
 
 void tools::addArchSpecificRPath(const ToolChain &TC, const ArgList &Args,

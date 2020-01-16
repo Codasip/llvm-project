@@ -586,3 +586,14 @@ StringRef riscv::getRISCVArch(const llvm::opt::ArgList &Args,
       return "rv64imafdc";
   }
 }
+
+void riscv::addRISCVGoldPluginAdditionFlags(const ToolChain &ToolChain,
+                                const llvm::opt::ArgList &Args,
+                                llvm::opt::ArgStringList &CmdArgs) {
+  // -mabi is not encoded in bitcode so we need to pass it to LTO code
+  // generator.
+  StringRef ABIName = getRISCVABI(Args, ToolChain.getTriple());
+  CmdArgs.push_back(Args.MakeArgString(Twine("-plugin-opt=-target-"
+                                             "abi=") +
+                                       ABIName));
+}

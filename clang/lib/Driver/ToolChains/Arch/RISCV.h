@@ -26,6 +26,9 @@ StringRef getRISCVABI(const llvm::opt::ArgList &Args,
                       const llvm::Triple &Triple);
 StringRef getRISCVArch(const llvm::opt::ArgList &Args,
                        const llvm::Triple &Triple);
+void addRISCVGoldPluginAdditionFlags(const ToolChain &ToolChain,
+                                const llvm::opt::ArgList &Args,
+                                llvm::opt::ArgStringList &CmdArgs);
 } // end namespace riscv
 } // namespace tools
 } // end namespace driver

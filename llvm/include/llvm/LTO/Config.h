@@ -46,6 +46,7 @@ struct Config {
   CodeGenOpt::Level CGOptLevel = CodeGenOpt::Default;
   CodeGenFileType CGFileType = CGFT_ObjectFile;
   unsigned OptLevel = 2;
+  unsigned OptSize = 0;
   bool DisableVerify = false;
 
   /// Use the new pass manager

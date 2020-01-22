@@ -2073,8 +2073,9 @@ bool RISCVTargetLowering::isEligibleForTailCallOptimization(
   if (Caller.hasFnAttribute("interrupt"))
     return false;
 
-  // Overlay function can never tailcall
-  if (Caller.getFunction().getCallingConv() == CallingConv::RISCV_OverlayCall)
+  // Overlay function can never tailcall, nor can be tail called
+  if (CallerCC == CallingConv::RISCV_OverlayCall ||
+      CalleeCC == CallingConv::RISCV_OverlayCall)
     return false;
 
   // Do not tail call opt if the stack is used to pass parameters.

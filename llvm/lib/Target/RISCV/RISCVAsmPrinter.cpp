@@ -37,14 +37,17 @@ STATISTIC(RISCVNumInstrsCompressed,
 
 namespace {
 class RISCVAsmPrinter : public AsmPrinter {
+  const MCSubtargetInfo *STI;
+
 public:
   explicit RISCVAsmPrinter(TargetMachine &TM,
                            std::unique_ptr<MCStreamer> Streamer)
-      : AsmPrinter(TM, std::move(Streamer)) {}
+      : AsmPrinter(TM, std::move(Streamer)), STI(TM.getMCSubtargetInfo()) {}
 
   StringRef getPassName() const override { return "RISCV Assembly Printer"; }
 
   const MCExpr *lowerConstant(const Constant *CV) override;
+  void SetupMachineFunction(MachineFunction &MF) override;
 
   void emitInstruction(const MachineInstr *MI) override;
 
@@ -68,8 +71,7 @@ public:
 #include "RISCVGenCompressInstEmitter.inc"
 void RISCVAsmPrinter::EmitToStreamer(MCStreamer &S, const MCInst &Inst) {
   MCInst CInst;
-  bool Res = compressInst(CInst, Inst, *TM.getMCSubtargetInfo(),
-                          OutStreamer->getContext());
+  bool Res = compressInst(CInst, Inst, *STI, OutStreamer->getContext());
   if (Res)
     ++RISCVNumInstrsCompressed;
   AsmPrinter::EmitToStreamer(*OutStreamer, Res ? CInst : Inst);
@@ -174,6 +176,16 @@ const MCExpr *RISCVAsmPrinter::lowerConstant(const Constant *CV) {
     }
   }
   return AsmPrinter::lowerConstant(CV);
+}
+void RISCVAsmPrinter::SetupMachineFunction(MachineFunction &MF) {
+  // Set the current MCSubtargetInfo to a copy which has the correct
+  // feature bits for the current MachineFunction
+  MCSubtargetInfo &NewSTI =
+    OutStreamer->getContext().getSubtargetCopy(*TM.getMCSubtargetInfo());
+  NewSTI.setFeatureBits(MF.getSubtarget().getFeatureBits());
+  STI = &NewSTI;
+
+  return AsmPrinter::SetupMachineFunction(MF);
 }
 
 // Force static initialization.

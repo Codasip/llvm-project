@@ -506,15 +506,17 @@ SDValue RISCVTargetLowering::lowerGlobalAddress(SDValue Op,
   // the function resides in its overlay group
   unsigned LoFlags = 0, HiFlags = 0;
   if (auto *F = dyn_cast<Function>(GV)) {
-    assert (Offset == 0);
     if (F->getCallingConv() == CallingConv::RISCV_OverlayCall) {
+      if (Offset != 0)
+        report_fatal_error ("Arithmetic on overlay tokens is not supported");
       LoFlags = RISCVII::MO_OVLPLT_LO;
       HiFlags = RISCVII::MO_OVLPLT_HI;
     }
   }
   else if (auto *GVar = dyn_cast<GlobalVariable>(GV)) {
     if (GVar->hasAttribute("overlay-data")) {
-      assert (Offset == 0);
+      if (Offset != 0)
+        report_fatal_error ("Arithmetic on overlay tokens is not supported");
       LoFlags = RISCVII::MO_OVL_LO;
       HiFlags = RISCVII::MO_OVL_HI;
     }

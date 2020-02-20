@@ -2324,10 +2324,11 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     const GlobalValue *GV = S->getGlobal();
 
     unsigned OpFlags = RISCVII::MO_CALL;
-    if (cast<Function>(GV)->getCallingConv() == CallingConv::RISCV_OverlayCall ||
+    auto *F = dyn_cast<Function>(GV);
+    if ((F && F->getCallingConv() == CallingConv::RISCV_OverlayCall) ||
         MF.getFunction().getCallingConv() == CallingConv::RISCV_OverlayCall) {
       isOVLCC = true;
-      if (cast<Function>(GV)->getCallingConv() == CallingConv::RISCV_OverlayCall)
+      if (F && F->getCallingConv() == CallingConv::RISCV_OverlayCall)
         OpFlags = RISCVII::MO_OVLCALL; /*OVERLAY*/
       else
         OpFlags = RISCVII::MO_OVL2RESCALL; /*OVLCALL2*/

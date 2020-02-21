@@ -479,7 +479,10 @@ unsigned RISCVInstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
   case RISCV::PseudoLA:
   case RISCV::PseudoLA_TLS_IE:
   case RISCV::PseudoLA_TLS_GD:
+  case RISCV::PseudoOVLCALLIndirect:
     return 8;
+  case RISCV::PseudoOVLCALL:
+    return 12;
   case TargetOpcode::INLINEASM:
   case TargetOpcode::INLINEASM_BR: {
     const MachineFunction &MF = *MI.getParent()->getParent();

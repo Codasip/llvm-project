@@ -527,6 +527,8 @@ Pass *createLoopSimplifyCFGPass();
 // transformations.
 //
 Pass *createWarnMissedTransformationsPass();
+
+FunctionPass *createCodasipJumpThreadingPass(int Threshold = -1);
 } // End llvm namespace
 
 #endif

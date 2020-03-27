@@ -88,6 +88,12 @@ static cl::opt<bool> EnableLoopInterchange(
     "enable-loopinterchange", cl::init(false), cl::Hidden,
     cl::desc("Enable the new, experimental LoopInterchange Pass"));
 
+static cl::opt<bool>
+UseCodasipJumpThreading("use-codasip-jump-threading",
+  cl::init(false), cl::Hidden,
+  cl::desc("Use Codasip Jump Threading Pass instead of LLVM Jump Threading Pass"));
+
+
 static cl::opt<bool> EnableUnrollAndJam("enable-unroll-and-jam",
                                         cl::init(false), cl::Hidden,
                                         cl::desc("Enable Unroll And Jam Pass"));
@@ -367,7 +373,11 @@ void PassManagerBuilder::addFunctionSimplificationPasses(
     // Speculative execution if the target has divergent branches; otherwise nop.
     MPM.add(createSpeculativeExecutionIfHasBranchDivergencePass());
 
-    MPM.add(createJumpThreadingPass());         // Thread jumps.
+    // Thread jumps.
+    if (UseCodasipJumpThreading && !PrepareForLTO && (OptLevel == 3 && SizeLevel == 0))
+      MPM.add(createCodasipJumpThreadingPass());
+    else
+      MPM.add(createJumpThreadingPass());         // Thread jumps.
     MPM.add(createCorrelatedValuePropagationPass()); // Propagate conditionals
   }
   MPM.add(createCFGSimplificationPass());     // Merge & remove BBs
@@ -443,7 +453,11 @@ void PassManagerBuilder::addFunctionSimplificationPasses(
   addInstructionCombiningPass(MPM);
   addExtensionsToPM(EP_Peephole, MPM);
   if (OptLevel > 1) {
-    MPM.add(createJumpThreadingPass());         // Thread jumps
+    // Thread jumps.
+    if (UseCodasipJumpThreading && !PrepareForLTO && (OptLevel == 3 && SizeLevel == 0))
+      MPM.add(createCodasipJumpThreadingPass());
+    else
+      MPM.add(createJumpThreadingPass());         // Thread jumps
     MPM.add(createCorrelatedValuePropagationPass());
     MPM.add(createDeadStoreEliminationPass());  // Delete dead stores
     MPM.add(createLICMPass(LicmMssaOptCap, LicmMssaNoAccForPromotionCap));
@@ -964,7 +978,11 @@ void PassManagerBuilder::addLTOOptimizationPasses(legacy::PassManagerBase &PM) {
   // The IPO passes may leave cruft around.  Clean up after them.
   addInstructionCombiningPass(PM);
   addExtensionsToPM(EP_Peephole, PM);
-  PM.add(createJumpThreadingPass());
+  // Thread jumps.
+  if (UseCodasipJumpThreading && (OptLevel == 3 && SizeLevel == 0))
+    PM.add(createCodasipJumpThreadingPass());
+  else
+    PM.add(createJumpThreadingPass());
 
   // Break up allocas
   PM.add(createSROAPass());
@@ -1028,7 +1046,11 @@ void PassManagerBuilder::addLTOOptimizationPasses(legacy::PassManagerBase &PM) {
   addInstructionCombiningPass(PM);
   addExtensionsToPM(EP_Peephole, PM);
 
-  PM.add(createJumpThreadingPass());
+  // Thread jumps.
+  if (UseCodasipJumpThreading && (OptLevel == 3 && SizeLevel == 0))
+    PM.add(createCodasipJumpThreadingPass());
+  else
+    PM.add(createJumpThreadingPass());
 }
 
 void PassManagerBuilder::addLateLTOOptimizationPasses(

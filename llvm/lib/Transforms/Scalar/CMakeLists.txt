@@ -3,6 +3,7 @@ add_llvm_component_library(LLVMScalarOpts
   AlignmentFromAssumptions.cpp
   BDCE.cpp
   CallSiteSplitting.cpp
+  CodasipJumpThreading.cpp
   ConstantHoisting.cpp
   ConstantProp.cpp
   CorrelatedValuePropagation.cpp
@@ -21,6 +22,10 @@ add_llvm_component_library(LLVMScalarOpts
   IndVarSimplify.cpp
   InferAddressSpaces.cpp
   InstSimplifyPass.cpp
+  IrreducibilityChecker.cpp
+  JTAnalyzer.cpp
+  JTDebug.cpp
+  JTPhiRebuilder.cpp
   JumpThreading.cpp
   LICM.cpp
   LoopAccessAnalysisPrinter.cpp

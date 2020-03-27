@@ -28,6 +28,11 @@ add_llvm_component_library(LLVMCore
   Instruction.cpp
   Instructions.cpp
   IntrinsicInst.cpp
+  JTBlock.cpp
+  JTBuilder.cpp
+  JTEdge.cpp
+  JTGraph.cpp
+  JTThreadableNode.cpp
   LLVMContext.cpp
   LLVMContextImpl.cpp
   LLVMRemarkStreamer.cpp

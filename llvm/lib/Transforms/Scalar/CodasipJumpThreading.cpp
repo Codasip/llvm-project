@@ -543,6 +543,7 @@ bool CodasipJumpThreading::mergeSameEntryEdgeGraphs(JTGraph &Dst, JTGraph &Src)
   JTBlock &SrcFirstDifferent = *Src.getBlocks()[SrcIndex];
   LLVM_DEBUG(dbgs() << "LS DST: " << DstLastShared.getName() << " SRC: " << SrcLastShared.getName()
     << "\nFD DST: " << DstFirstDifferent.getName() << " SRC: " << SrcFirstDifferent.getName() << "\n");
+  (void)DstFirstDifferent;
   //JTEdge *FoundEdge = nullptr;
   for (JTEdge *E : DstLastShared.getSuccessors())
     if (E->getOutBlock().getOriginal(true) == SrcFirstDifferent.getOriginal()) {
@@ -669,6 +670,7 @@ void CodasipJumpThreading::attachGraph(JTGraph &Dst, JTGraph &Src, bool &Changed
     }
 
     assert(Found && "Expecting existing successor.");
+    (void)Found;
 
     // Remove useless edges
     for (JTEdge *Edge : Removal)
@@ -819,6 +821,7 @@ void CodasipJumpThreading::fixSwitch(Instruction *Terminator, JTBlock &Block)
       assert(Edge->isIndirect());
       BasicBlock *Successor = &Edge->getOutBlock().getReference();
       assert(Edge->getAddress() == ExpectedAddress++ && "Unexpected indirect jump address.");
+      (void)ExpectedAddress;
       Indirect->addDestination(Successor);
     }
     ReplaceInstWithInst(Terminator, Indirect);

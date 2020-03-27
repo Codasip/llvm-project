@@ -293,6 +293,7 @@ Value *JTPhiRebuilder::getDominatingDefinition(
           }
         }
         assert(Found);
+        (void)Found;
       }
 
       // Clean useless incoming values of PHI instruction

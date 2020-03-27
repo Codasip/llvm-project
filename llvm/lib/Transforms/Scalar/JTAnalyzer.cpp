@@ -811,6 +811,7 @@ irreducibility::Vertex &JTAnalyzer::convertBlock(
     irreducibility::Vertex &S = convertBlock(IG, Mapping, Edge->getOutBlock());
     irreducibility::Edge *E = new irreducibility::Edge(*V, S);
     assert(E && "Allocation of Edge failed.");
+    (void)E;
   }
 
   return *V;

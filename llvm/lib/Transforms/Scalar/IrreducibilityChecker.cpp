@@ -25,6 +25,7 @@ bool Vertex::isOnlyPredecessorOf(const Vertex &V) const
   }
 
   assert(isPredecessor && "Given vertex is not a predecessor of this vertex.");
+  (void)isPredecessor;
   return isOnlyPredecessor;
 }
 
